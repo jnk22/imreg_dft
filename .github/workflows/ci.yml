@@ -30,13 +30,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Run tests
-        run: |
-          uv run pytest \
-            -n auto \
-            --cov-report=xml \
-            --cov-config=pyproject.toml \
-            --cov=src \
-            --cov=tests
+        run: uv run pytest -n auto --cov-report=xml --cov-config=pyproject.toml --cov=src --cov=tests
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
