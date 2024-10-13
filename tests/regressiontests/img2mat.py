@@ -1,7 +1,6 @@
 import argparse as ap
 
-import scipy.io as io
-import scipy.misc as misc
+from scipy import io, misc
 
 
 def parse():

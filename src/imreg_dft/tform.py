@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # tform.py
 
 # Copyright (c) 2016-?, Matěj Týč
@@ -35,10 +34,7 @@ import sys
 
 import numpy as np
 
-import imreg_dft.cli as cli
-import imreg_dft.imreg as imreg
-import imreg_dft.loader as loader
-import imreg_dft.utils as utils
+from imreg_dft import cli, imreg, loader, utils
 
 
 def create_parser():
@@ -64,9 +60,7 @@ def create_parser():
 
 # TODO: Hanldle missing entries + default values
 def _str2tform(tstr):
-    """
-    Parses a transformation-descripting string to a transformation dict.
-    """
+    """Parses a transformation-descripting string to a transformation dict."""
     rexp = (
         r"scale:\s*(?P<scale>\S*)\s*(\+-\S*)?\s*"
         r"angle:\s*(?P<angle>\S*)\s*(\+-\S*)?\s*"
@@ -98,8 +92,7 @@ def str2tform(tstr, invert=False):
 
 
 def args2dict(args):
-    """
-    Takes parsed command-line args and makes a dict that contains exact info
+    """Takes parsed command-line args and makes a dict that contains exact info
     about what needs to be done.
     """
     ret = dict()

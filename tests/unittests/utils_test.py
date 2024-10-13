@@ -1,11 +1,10 @@
 import unittest as ut
 
 import numpy as np
-import numpy.fft as fft
 import numpy.testing
+from numpy import fft
 
-import imreg_dft.utils as utils
-
+from imreg_dft import utils
 
 np.random.seed(108)
 
@@ -208,7 +207,7 @@ class TestUtils(ut.TestCase):
             recon[start[0] : start[0] + sshp[0], start[1] : start[1] + sshp[1]] = decarr
         np.testing.assert_array_equal(inarr, recon)
 
-        starts = list(zip(*decomps))[1]
+        starts = list(zip(*decomps, strict=False))[1]
         dshape = np.array(utils.starts2dshape(starts), int)
         # vvv generic conditions decomp shape has to satisfy vvv
         # np.testing.assert((dshape - 1) * tileshp * coef < smallshp)

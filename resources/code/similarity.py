@@ -5,7 +5,6 @@ import scipy.misc
 
 import imreg_dft as ird
 
-
 basedir = os.path.join("..", "examples")
 # the TEMPLATE
 im0 = sp.misc.imread(os.path.join(basedir, "sample1.png"), True)

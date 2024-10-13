@@ -1,6 +1,6 @@
 import unittest as ut
 
-import imreg_dft.reporting as reporting
+from imreg_dft import reporting
 
 
 class TestReports(ut.TestCase):

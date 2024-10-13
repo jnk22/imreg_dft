@@ -1,15 +1,13 @@
 import argparse as ap
 
+import matplotlib
 import scipy as sp
 import scipy.misc
-
-import matplotlib
 
 matplotlib.use("Cairo")
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
-
 
 _LABELS = "abcde"
 
