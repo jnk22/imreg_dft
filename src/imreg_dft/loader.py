@@ -430,7 +430,7 @@ class _HDRLoader(Loader):
         img = np.fromfile(f"{basename}.img", np.uint8, -1)
         img.shape = int(hdr[4].split()[-1]), int(hdr[3].split()[-1])
         if int(self._opts["norm"]):
-            img = img.astype(np.float64)
+            img = img.astype(float)
             img /= 255.0
         return img
 
