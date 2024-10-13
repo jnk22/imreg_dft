@@ -166,22 +166,22 @@ class TestUtils(ut.TestCase):
         small = np.array((20, 20))
         res = utils.getCuts(big, small, 0.25)
         # first is (0, 0), second is (0, 1)
-        self.assertEquals(res[1][1], 5)
+        self.assertEqual(res[1][1], 5)
         # Last element of the row has beginning at 40
-        self.assertEquals(res[5][1], 25)
-        self.assertEquals(res[6][1], 30)
-        self.assertEquals(res[7][1], 0)
+        self.assertEqual(res[5][1], 25)
+        self.assertEqual(res[6][1], 30)
+        self.assertEqual(res[7][1], 0)
         # (50 / 5) + 1 = 11th should be (5, 5) - 2nd of the 2nd row
-        self.assertEquals(res[8], (5, 5))
+        self.assertEqual(res[8], (5, 5))
 
         small = np.array((10, 20))
         res = utils.getCuts(big, small, 1.0)
-        self.assertEquals(res[1], (0, 15))
-        self.assertEquals(res[2], (0, 30))
-        self.assertEquals(res[3], (10, 0))
-        self.assertEquals(res[4], (10, 15))
-        self.assertEquals(res[5], (10, 30))
-        self.assertEquals(res[6], (20, 0))
+        self.assertEqual(res[1], (0, 15))
+        self.assertEqual(res[2], (0, 30))
+        self.assertEqual(res[3], (10, 0))
+        self.assertEqual(res[4], (10, 15))
+        self.assertEqual(res[5], (10, 30))
+        self.assertEqual(res[6], (20, 0))
 
     def test_cut(self):
         # Tests of those private functions are ugly
