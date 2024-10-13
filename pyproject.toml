@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "numpy>=1.7.0,<1.24.0", # 1.24.0 removed the deprecated 'np.float'
+  "numpy>1.22", # >1.22 is required due to removal of 'distutils' for Python 3.12+ support
   "scipy>=0.12",
   "pillow",
 ]
