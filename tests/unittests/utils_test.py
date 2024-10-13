@@ -10,9 +10,7 @@ np.random.seed(108)
 
 
 def _slice2arr(sli):
-    res = []
-    res.append(sli.start)
-    res.append(sli.stop)
+    res = [sli.start, sli.stop]
     res.append(res[1] - res[0])
     return np.array(res, int)
 

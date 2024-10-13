@@ -100,9 +100,7 @@ def _get_constraint_mask(shape, log_base, constraints=None):
             ascales = np.abs(scales)
             scale_min = ascales.min()
             mask[ascales > scale_min] = 0
-        elif sigma is None:
-            pass
-        else:
+        elif sigma is not None:
             mask *= np.exp(-(scales**2) / sigma**2)
 
     if "angle" in constraints:
@@ -118,9 +116,7 @@ def _get_constraint_mask(shape, log_base, constraints=None):
             aangles = np.abs(angles)
             angle_min = aangles.min()
             mask[aangles > angle_min] = 0
-        elif sigma is None:
-            pass
-        else:
+        elif sigma is not None:
             mask *= np.exp(-(angles**2) / sigma**2)
 
     return fft.fftshift(mask)
@@ -412,13 +408,6 @@ def extend_to(what, newdim):
 
     # res is a convex combination of its previous self and the bg value
     return apoemb * res + (1 - apoemb) * bgval
-
-    # vvv This doesn't work well vvv
-
-    mask = dest
-    mask = embed_to(mask, np.ones_like(what))
-
-    return frame_img(res, mask, dst, apoemb)
 
 
 def extend_by(what, dst):
@@ -771,11 +760,7 @@ def mkCut(shp0, dims, start):
     # If the end would be outside, we shift both the start AND the end.
     rstart = start + diff
     rend = end + diff
-    res = []
-    for dim in range(dims.size):
-        toapp = slice(rstart[dim], rend[dim])
-        res.append(toapp)
-    return res
+    return [slice(rstart[dim], rend[dim]) for dim in range(dims.size)]
 
 
 def _get_dst1(pt, pts):

@@ -71,9 +71,7 @@ def create_parser():
         "--display",
         type=_show_valid,
         default=TOSHOW_ABBR,
-        help="String composing of '{}', meaning respectively: {}.".format(
-            TOSHOW_ABBR, ", ".join(TOSHOW)
-        ),
+        help=f"""String composing of '{TOSHOW_ABBR}', meaning respectively: {", ".join(TOSHOW)}.""",
     )
     return parser
 
