@@ -1,6 +1,7 @@
 imreg_dft
 =========
 
+[![Python version](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](./pyproject.toml)
 [![Latest Version on PyPi](http://img.shields.io/pypi/v/imreg_dft.svg)](https://pypi.python.org/pypi/imreg_dft)
 [![CI](https://github.com/jnk22/imreg_dft/actions/workflows/ci.yml/badge.svg)](https://github.com/jnk22/imreg_dft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/jnk22/imreg_dft/graph/badge.svg?token=0K1MYJT3Y5)](https://codecov.io/github/jnk22/imreg_dft)
