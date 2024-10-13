@@ -29,7 +29,3 @@ class TestReports(ut.TestCase):
         assert "three" in wrapper._stuff["5-"]
         assert "four" in wrapper._stuff["1-"]
         assert "five" in wrapper._stuff[""]
-
-
-if __name__ == "__main__":
-    ut.main()

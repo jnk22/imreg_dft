@@ -281,7 +281,3 @@ class TestTiles(ut.TestCase):
         assert angle == angles[0]
         assert scale == scales[0]
         assert score == scores[0]
-
-
-if __name__ == "__main__":
-    ut.main()

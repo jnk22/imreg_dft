@@ -22,7 +22,3 @@ class TestImreg(ut.TestCase):
         assert odds == -1
         odds = imreg._get_odds(10, 200, 0.1)
         assert odds == -1
-
-
-if __name__ == "__main__":
-    ut.main()

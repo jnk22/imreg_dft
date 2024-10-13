@@ -16,7 +16,3 @@ class TestImreg(ut.TestCase):
             self.assertAlmostEqual(res["angle"], 186)
             self.assertAlmostEqual(res["tvec"][0], 44.2)  # y-component
             self.assertAlmostEqual(res["tvec"][1], 35)  # x-component
-
-
-if __name__ == "__main__":
-    ut.main()
