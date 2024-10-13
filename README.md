@@ -3,6 +3,7 @@ imreg_dft
 
 [![Latest Version on PyPi](http://img.shields.io/pypi/v/imreg_dft.svg)](https://pypi.python.org/pypi/imreg_dft)
 [![Build Status](https://travis-ci.org/matejak/imreg_dft.svg?branch=master)](https://travis-ci.org/matejak/imreg_dft)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Documentation Status](https://readthedocs.org/projects/imreg-dft/badge/?version=latest)](https://readthedocs.org/projects/imreg-dft/?badge=latest)
 
 Project status
