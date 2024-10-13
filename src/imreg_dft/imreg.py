@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # imreg.py
 
 # Copyright (c) 2014-?, Matěj Týč
@@ -31,11 +30,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-FFT based image registration. --- main functions
-"""
-
-from __future__ import division, print_function
+"""FFT based image registration. --- main functions"""
 
 import math
 
@@ -44,15 +39,14 @@ import numpy as np
 try:
     import pyfftw.interfaces.numpy_fft as fft
 except ImportError:
-    import numpy.fft as fft
+    from numpy import fft
 import scipy.ndimage.interpolation as ndii
 
-import imreg_dft.utils as utils
+from imreg_dft import utils
 
 
 def _logpolar_filter(shape):
-    """
-    Make a radial cosine filter for the logpolar transform.
+    """Make a radial cosine filter for the logpolar transform.
     This filter suppresses low frequencies and completely removes
     the zero freq.
     """
@@ -73,8 +67,7 @@ def _get_pcorr_shape(shape):
 
 
 def _get_ang_scale(ims, bgval, exponent="inf", constraints=None, reports=None):
-    """
-    Given two images, return their scale and angle difference.
+    """Given two images, return their scale and angle difference.
 
     Args:
         ims (2-tuple-like of 2D ndarrays): The images
@@ -86,6 +79,7 @@ def _get_ang_scale(ims, bgval, exponent="inf", constraints=None, reports=None):
     Returns:
         tuple: Scale, angle. Describes the relationship of
         the subject image to the first one.
+
     """
     assert len(ims) == 2, "Only two images are supported as input"
     shape = ims[0].shape
@@ -152,8 +146,7 @@ def _get_ang_scale(ims, bgval, exponent="inf", constraints=None, reports=None):
 
 
 def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None):
-    """
-    Return translation vector to register images.
+    """Return translation vector to register images.
     It tells how to translate the im1 to get im0.
 
     Args:
@@ -174,6 +167,7 @@ def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None
     Returns:
         dict: Contains following keys: ``angle``, ``tvec`` (Y, X),
             and ``success``.
+
     """
     angle = 0
     report_one = report_two = None
@@ -223,13 +217,13 @@ def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None
 
 
 def _get_precision(shape, scale=1):
-    """
-    Given the parameters of the log-polar transform, get width of the interval
+    """Given the parameters of the log-polar transform, get width of the interval
     where the correct values are.
 
     Args:
         shape (tuple): Shape of images
         scale (float): The scale difference (precision varies)
+
     """
     pcorr_shape = _get_pcorr_shape(shape)
     log_base = _get_log_base(shape, pcorr_shape[1])
@@ -253,8 +247,7 @@ def _similarity(
     bgval=None,
     reports=None,
 ):
-    """
-    This function takes some input and returns mutual rotation, scale
+    """This function takes some input and returns mutual rotation, scale
     and translation.
     It does these things during the process:
 
@@ -266,6 +259,7 @@ def _similarity(
 
     Returns:
         Dictionary with results.
+
     """
     if bgval is None:
         bgval = utils.get_borderval(im1, 5)
@@ -273,7 +267,7 @@ def _similarity(
     shape = im0.shape
     if shape != im1.shape:
         raise ValueError("Images must have same shapes.")
-    elif im0.ndim != 2:
+    if im0.ndim != 2:
         raise ValueError("Images must be 2-dimensional.")
 
     # We are going to iterate and precise scale and angle estimates
@@ -350,8 +344,7 @@ def similarity(
     exponent="inf",
     reports=None,
 ):
-    """
-    Return similarity transformed image im1 and transformation parameters.
+    """Return similarity transformed image im1 and transformation parameters.
     Transformation parameters are: isotropic scale factor, rotation angle (in
     degrees), and translation vector.
 
@@ -395,6 +388,7 @@ def similarity(
         * Scale change must be less than 2.
         * No subpixel precision (but you can use *resampling* to get
           around this).
+
     """
     bgval = utils.get_borderval(im1, 5)
 
@@ -416,8 +410,7 @@ def similarity(
 
 
 def _get_odds(angle, target, stdev):
-    """
-    Determine whether we are more likely to choose the angle, or angle + 180°
+    """Determine whether we are more likely to choose the angle, or angle + 180°
 
     Args:
         angle (float, degrees): The base angle.
@@ -430,6 +423,7 @@ def _get_odds(angle, target, stdev):
         float: The greater the odds are, the higher is the preferrence
             of the angle + 180 over the original angle. Odds of -1 are the same
             as inifinity.
+
     """
     ret = 1
     if stdev is not None:
@@ -453,9 +447,7 @@ def _get_odds(angle, target, stdev):
 
 
 def _translation(im0, im1, filter_pcorr=0, constraints=None, reports=None):
-    """
-    The plain wrapper for translation phase correlation, no big deal.
-    """
+    """The plain wrapper for translation phase correlation, no big deal."""
     # Apodization and pcorr don't play along
     # im0, im1 = [utils._apodize(im, ratio=1) for im in (im0, im1)]
     ret, succ = _phase_correlation(
@@ -465,8 +457,7 @@ def _translation(im0, im1, filter_pcorr=0, constraints=None, reports=None):
 
 
 def _phase_correlation(im0, im1, callback=None, *args):
-    """
-    Computes phase correlation between im0 and im1
+    """Computes phase correlation between im0 and im1
 
     Args:
         im0
@@ -478,6 +469,7 @@ def _phase_correlation(im0, im1, callback=None, *args):
     Returns:
         tuple: The translation vector (Y, X). Translation vector of (0, 0)
             means that the two images match.
+
     """
     if callback is None:
         callback = utils._argmax2D
@@ -504,8 +496,7 @@ def _phase_correlation(im0, im1, callback=None, *args):
 
 
 def transform_img_dict(img, tdict, bgval=None, order=1, invert=False):
-    """
-    Wrapper of :func:`transform_img`, works well with the :func:`similarity`
+    """Wrapper of :func:`transform_img`, works well with the :func:`similarity`
     output.
 
     Args:
@@ -519,6 +510,7 @@ def transform_img_dict(img, tdict, bgval=None, order=1, invert=False):
 
     Returns:
         np.ndarray: .. seealso:: :func:`transform_img`
+
     """
     scale = tdict["scale"]
     angle = tdict["angle"]
@@ -534,8 +526,7 @@ def transform_img_dict(img, tdict, bgval=None, order=1, invert=False):
 def transform_img(
     img, scale=1.0, angle=0.0, tvec=(0, 0), mode="constant", bgval=None, order=1
 ):
-    """
-    Return translation vector to register images.
+    """Return translation vector to register images.
 
     Args:
         img (2D or 3D numpy array): What will be transformed.
@@ -558,6 +549,7 @@ def transform_img(
     Returns:
         np.ndarray: The transformed img, may have another
         i.e. (bigger) shape than the source.
+
     """
     if img.ndim == 3:
         # A bloody painful special case of RGB images
@@ -566,7 +558,7 @@ def transform_img(
             sli = (slice(None), slice(None), idx)
             ret[sli] = transform_img(img[sli], scale, angle, tvec, mode, bgval, order)
         return ret
-    elif np.iscomplexobj(img):
+    if np.iscomplexobj(img):
         decomposed = np.empty(img.shape + (2,), float)
         decomposed[:, :, 0] = img.real
         decomposed[:, :, 1] = img.imag
@@ -598,8 +590,7 @@ def transform_img(
 
 
 def similarity_matrix(scale, angle, vector):
-    """
-    Return homogeneous transformation matrix from similarity parameters.
+    """Return homogeneous transformation matrix from similarity parameters.
 
     Transformation parameters are: isotropic scale factor, rotation angle (in
     degrees), and translation vector (of size 2).
@@ -624,8 +615,7 @@ EXCESS_CONST = 1.1
 
 
 def _get_log_base(shape, new_r):
-    """
-    Basically common functionality of :func:`_logpolar`
+    r"""Basically common functionality of :func:`_logpolar`
     and :func:`_get_ang_scale`
 
     This value can be considered fixed, if you want to mess with the logpolar
@@ -640,6 +630,7 @@ def _get_log_base(shape, new_r):
         The following holds:
         :math:`log\_base = \exp( \ln [ \mathit{spectrum\_dim} ] / \mathit{loglpolar\_scale\_dim} )`,
         or the equivalent :math:`log\_base^{\mathit{loglpolar\_scale\_dim}} = \mathit{spectrum\_dim}`.
+
     """
     # The highest radius we have to accomodate is 'old_r',
     # However, we cut some parts out as only a thin part of the spectra has
@@ -653,8 +644,7 @@ def _get_log_base(shape, new_r):
 
 
 def _logpolar(image, shape, log_base, bgval=None):
-    """
-    Return log-polar transformed image
+    """Return log-polar transformed image
     Takes into account anisotropicity of the freq spectrum
     of rectangular images
 
@@ -667,6 +657,7 @@ def _logpolar(image, shape, log_base, bgval=None):
 
     Returns:
         The transformed image
+
     """
     if bgval is None:
         bgval = np.percentile(image, 1)
@@ -693,8 +684,7 @@ def _logpolar(image, shape, log_base, bgval=None):
 
 
 def imshow(im0, im1, im2, cmap=None, fig=None, **kwargs):
-    """
-    Plot images using matplotlib.
+    """Plot images using matplotlib.
     Opens a new figure with four subplots:
 
     ::
@@ -718,6 +708,7 @@ def imshow(im0, im1, im2, cmap=None, fig=None, **kwargs):
 
     Returns:
         matplotlib figure: The figure with subplots
+
     """
     from matplotlib import pyplot
 

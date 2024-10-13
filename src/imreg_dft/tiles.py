@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # tiles.py
 
 # Copyright (c) 2014-?, Matěj Týč
@@ -31,9 +30,7 @@
 import numpy as np
 
 import imreg_dft as ird
-import imreg_dft.utils as utils
-import imreg_dft.reporting as reporting
-
+from imreg_dft import reporting, utils
 
 _TILES = None
 _SUCCS = None
@@ -121,11 +118,11 @@ def _postprocess_unextend(ims, im2, extend, rcoef=1):
 
 
 def process_images(ims, opts, tosa=None, get_unextended=False, reports=None):
-    """
-    Args:
-        tosa (np.ndarray): An array where to save the transformed subject.
-        get_unextended (bool): Whether to get the transformed subject
-            in the same shape and coord origin as the template.
+    """Args:
+    tosa (np.ndarray): An array where to save the transformed subject.
+    get_unextended (bool): Whether to get the transformed subject
+        in the same shape and coord origin as the template.
+
     """
     # lazy import so no imports before run() is really called
     from imreg_dft import imreg
@@ -226,7 +223,7 @@ def _fill_globals(tiles, poss, image, opts):
 
     _IMAGE = np.zeros_like(image) + image
     _OPTS = opts
-    _POSS = tuple((tuple(pos) for pos in poss))
+    _POSS = tuple(tuple(pos) for pos in poss)
 
 
 def settle_tiles(imgs, tiledim, opts, reports=None):
@@ -234,7 +231,7 @@ def settle_tiles(imgs, tiledim, opts, reports=None):
     coef = 0.41
     img0 = imgs[0]
 
-    tiles, poss = zip(*ird.utils.decompose(img0, tiledim, coef))
+    tiles, poss = zip(*ird.utils.decompose(img0, tiledim, coef), strict=False)
     nrows, ncols = utils.starts2dshape(poss)
 
     _fill_globals(tiles, poss, imgs[1], opts)

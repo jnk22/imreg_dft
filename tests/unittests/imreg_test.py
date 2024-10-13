@@ -1,6 +1,6 @@
 import unittest as ut
 
-import imreg_dft.imreg as imreg
+from imreg_dft import imreg
 
 
 class TestImreg(ut.TestCase):

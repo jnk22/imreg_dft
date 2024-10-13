@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # cli.py
 
 # Copyright (c) 2014-?, Matěj Týč
@@ -28,17 +27,13 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-FFT based image registration. --- CLI frontend
-"""
+"""FFT based image registration. --- CLI frontend"""
 
-import sys
 import argparse as ap
+import sys
 
 import imreg_dft as ird
-import imreg_dft.utils as utils
-import imreg_dft.loader as loader
-import imreg_dft.tiles as tiles
+from imreg_dft import loader, tiles, utils
 
 
 def assure_constraint(possible_constraints):
@@ -68,8 +63,8 @@ def _constraints(what):
             lo, hi = BOUNDS[what]
             if not lo <= mean <= hi:
                 raise ap.ArgumentTypeError(
-                    "The {} value must be a number between {:g} and {:g}, "
-                    "got {:g}.".format(what, lo, hi, mean)
+                    f"The {what} value must be a number between {lo:g} and {hi:g}, "
+                    f"got {mean:g}."
                 )
         std = 0
         if len(components) == 2:
@@ -91,9 +86,7 @@ def _constraints(what):
 
 
 def _float_tuple(string):
-    """
-    Support function for parsing string of two floats delimited by a comma.
-    """
+    """Support function for parsing string of two floats delimited by a comma."""
     vals = string.split(",")
     if len(vals) != 2:
         raise ap.ArgumentTypeError(
@@ -107,9 +100,7 @@ def _float_tuple(string):
 
 
 def _exponent(string):
-    """
-    Converts the passed string to a float or "inf"
-    """
+    """Converts the passed string to a float or "inf" """
     if string == "inf":
         return string
     try:
@@ -122,8 +113,7 @@ def _exponent(string):
 
 
 def outmsg(msg):
-    """
-    Support function for checking of validity of the output format string.
+    """Support function for checking of validity of the output format string.
     A test interpolation is performed and exceptions handled.
     """
     fake_data = dict(
@@ -363,7 +353,7 @@ def run(template, subject, opts):
     fnames = (template, subject)
     loaders = opts["loaders"]
     loader_img = loaders[1]
-    imgs = [loa.load2reg(fname) for fname, loa in zip(fnames, loaders)]
+    imgs = [loa.load2reg(fname) for fname, loa in zip(fnames, loaders, strict=False)]
 
     # The array where the result should be placed
     tosa = None

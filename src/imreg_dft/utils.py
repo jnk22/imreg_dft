@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # utils.py
 
 # Copyright (c) 2014-?, Matěj Týč
@@ -28,20 +27,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-FFT based image registration. --- utility functions
-"""
+"""FFT based image registration. --- utility functions"""
 
 import numpy as np
-import numpy.fft as fft
 import scipy.ndimage as ndi
+from numpy import fft
 
 
 def wrap_angle(angles, ceil=2 * np.pi):
-    """
-    Args:
-        angles (float or ndarray, unit depends on kwarg ``ceil``)
-        ceil (float): Turnaround value
+    """Args:
+    angles (float or ndarray, unit depends on kwarg ``ceil``)
+    ceil (float): Turnaround value
+
     """
     angles += ceil / 2.0
     angles %= ceil
@@ -50,16 +47,13 @@ def wrap_angle(angles, ceil=2 * np.pi):
 
 
 def rot180(arr):
-    """
-    Rotate the input array over 180°
-    """
+    """Rotate the input array over 180°"""
     ret = np.rot90(arr, 2)
     return ret
 
 
 def _get_angles(shape):
-    """
-    In the log-polar spectrum, the (first) coord corresponds to an angle.
+    """In the log-polar spectrum, the (first) coord corresponds to an angle.
     This function returns a mapping of (the two) coordinates
     to the respective angle.
     """
@@ -69,14 +63,14 @@ def _get_angles(shape):
 
 
 def _get_lograd(shape, log_base):
-    """
-    In the log-polar spectrum, the (second) coord corresponds to an angle.
+    """In the log-polar spectrum, the (second) coord corresponds to an angle.
     This function returns a mapping of (the two) coordinates
     to the respective scale.
 
     Returns:
         2D np.ndarray of shape ``shape``, -1 coord contains scales
             from 0 to log_base ** (shape[1] - 1)
+
     """
     ret = np.zeros(shape, dtype=np.float64)
     ret += np.power(log_base, np.arange(shape[1], dtype=float))[np.newaxis, :]
@@ -84,9 +78,7 @@ def _get_lograd(shape, log_base):
 
 
 def _get_constraint_mask(shape, log_base, constraints=None):
-    """
-    Prepare mask to apply to constraints to a cross-power spectrum.
-    """
+    """Prepare mask to apply to constraints to a cross-power spectrum."""
     if constraints is None:
         constraints = {}
 
@@ -137,8 +129,7 @@ def _get_constraint_mask(shape, log_base, constraints=None):
 
 
 def argmax_angscale(array, log_base, exponent, constraints=None, reports=None):
-    """
-    Given a power spectrum, we choose the best fit.
+    """Given a power spectrum, we choose the best fit.
 
     The power spectrum is treated with constraint masks and then
     passed to :func:`_argmax_ext`.
@@ -212,8 +203,7 @@ def argmax_translation(array, filter_pcorr, constraints=None, reports=None):
 
 
 def _get_success(array, coord, radius=2):
-    """
-    Given a coord, examine the array around it and return a number signifying
+    """Given a coord, examine the array around it and return a number signifying
     how good is the "match".
 
     Args:
@@ -224,6 +214,7 @@ def _get_success(array, coord, radius=2):
     Returns:
         Success as float between 0 and 1 (can get slightly higher than 1).
         The meaning of the number is loose, but the higher the better.
+
     """
     coord = np.round(coord).astype(int)
     coord = tuple(coord)
@@ -240,9 +231,7 @@ def _get_success(array, coord, radius=2):
 
 
 def _argmax2D(array, reports=None):
-    """
-    Simple 2D argmax function with simple sharpness indication
-    """
+    """Simple 2D argmax function with simple sharpness indication"""
     amax = np.argmax(array)
     ret = list(np.unravel_index(amax, array.shape))
 
@@ -250,12 +239,12 @@ def _argmax2D(array, reports=None):
 
 
 def _get_subarr(array, center, rad):
-    """
-    Args:
-        array (ndarray): The array to search
-        center (2-tuple): The point in the array to search around
-        rad (int): Search radius, no radius (i.e. get the single point)
-            implies rad == 0
+    """Args:
+    array (ndarray): The array to search
+    center (2-tuple): The point in the array to search around
+    rad (int): Search radius, no radius (i.e. get the single point)
+        implies rad == 0
+
     """
     dim = 1 + 2 * rad
     subarr = np.zeros((dim,) * 2)
@@ -271,8 +260,7 @@ def _get_subarr(array, center, rad):
 
 
 def _interpolate(array, rough, rad=2):
-    """
-    Returns index that is in the array after being rounded.
+    """Returns index that is in the array after being rounded.
 
     The result index tuple is in each of its components between zero and the
     array's shape.
@@ -293,8 +281,7 @@ def _interpolate(array, rough, rad=2):
 
 
 def _argmax_ext(array, exponent):
-    """
-    Calculate coordinates of the COM (center of mass) of the provided array.
+    """Calculate coordinates of the COM (center of mass) of the provided array.
 
     Args:
         array (ndarray): The array to be examined.
@@ -303,8 +290,8 @@ def _argmax_ext(array, exponent):
 
     Returns:
         np.ndarray: The COM coordinate tuple, float values are allowed!
-    """
 
+    """
     # When using an integer exponent for _argmax_ext, it is good to have the
     # neutral rotation/scale in the center rather near the edges
 
@@ -329,12 +316,10 @@ def _argmax_ext(array, exponent):
 
 
 def _get_emslices(shape1, shape2):
-    """
-    Common code used by :func:`embed_to` and :func:`undo_embed`
-    """
+    """Common code used by :func:`embed_to` and :func:`undo_embed`"""
     slices_from = []
     slices_to = []
-    for dim1, dim2 in zip(shape1, shape2):
+    for dim1, dim2 in zip(shape1, shape2, strict=False):
         diff = dim2 - dim1
         # In fact: if diff == 0:
         slice_from = slice(None)
@@ -355,8 +340,7 @@ def _get_emslices(shape1, shape2):
 
 
 def undo_embed(what, orig_shape):
-    """
-    Undo an embed operation
+    """Undo an embed operation
 
     Args:
         what: What has once be the destination array
@@ -364,6 +348,7 @@ def undo_embed(what, orig_shape):
 
     Returns:
         The closest we got to the undo
+
     """
     _, slices_to = _get_emslices(what.shape, orig_shape)
 
@@ -372,8 +357,7 @@ def undo_embed(what, orig_shape):
 
 
 def embed_to(where, what):
-    """
-    Given a source and destination arrays, put the source into
+    """Given a source and destination arrays, put the source into
     the destination so it is centered and perform all necessary operations
     (cropping or aligning)
 
@@ -383,6 +367,7 @@ def embed_to(where, what):
 
     Returns:
         The destination array
+
     """
     slices_from, slices_to = _get_emslices(where.shape, what.shape)
 
@@ -391,9 +376,7 @@ def embed_to(where, what):
 
 
 def extend_to_3D(what, newdim_2D):
-    """
-    Extend 2D and 3D arrays (when being supplied with their x--y shape).
-    """
+    """Extend 2D and 3D arrays (when being supplied with their x--y shape)."""
     assert len(newdim_2D) == 2, (
         "You were supposed to provide 2D dimensions, got %s" % newdim_2D
     )
@@ -410,8 +393,7 @@ def extend_to_3D(what, newdim_2D):
 
 
 def extend_to(what, newdim):
-    """
-    Given an image, it puts it in a (typically larger) array.
+    """Given an image, it puts it in a (typically larger) array.
     To prevent rough edges from appearing, the containing array has a color
     that is close to the image's border color, and image edges
     smoothly blend into the background.
@@ -419,6 +401,7 @@ def extend_to(what, newdim):
     Args:
         what (ndarray): What to extend
         newdim (tuple): The resulting dimension
+
     """
     mindim = min(what.shape)
     dst = int(mindim * 0.12)
@@ -446,8 +429,7 @@ def extend_to(what, newdim):
 
 
 def extend_by(what, dst):
-    """
-    Given a source array, extend it by given number of pixels and try
+    """Given a source array, extend it by given number of pixels and try
     to make the extension smooth (not altering the original array).
     """
     olddim = np.array(what.shape, dtype=int)
@@ -459,8 +441,7 @@ def extend_by(what, dst):
 
 
 def unextend_by(what, dst):
-    """
-    Try to undo as much as the :func:`extend_by` does.
+    """Try to undo as much as the :func:`extend_by` does.
     Some things can't be undone, though.
     """
     newdim = np.array(what.shape, dtype=int)
@@ -471,8 +452,7 @@ def unextend_by(what, dst):
 
 
 def imfilter(img, low=None, high=None, cap=None):
-    """
-    Given an image, it a high-pass and/or low-pass filters on its
+    """Given an image, it a high-pass and/or low-pass filters on its
     Fourier spectrum.
 
     Args:
@@ -485,6 +465,7 @@ def imfilter(img, low=None, high=None, cap=None):
 
     Returns:
         np.ndarray: The real component of the image after filtering
+
     """
     dft = fft.fft2(img)
 
@@ -524,8 +505,7 @@ def _lowpass(dft, lo, hi):
 
 
 def _xpass(shape, lo, hi):
-    """
-    Compute a pass-filter mask with values ranging from 0 to 1.0
+    """Compute a pass-filter mask with values ranging from 0 to 1.0
     The mask is low-pass, application has to be handled by a calling funcion.
     """
     assert lo <= hi, "Filter order wrong, low '%g', high '%g'" % (lo, hi)
@@ -547,8 +527,7 @@ def _xpass(shape, lo, hi):
 
 
 def _apodize(what, aporad=None, ratio=None):
-    """
-    Given an image, it apodizes it (so it becomes quasi-seamless).
+    """Given an image, it apodizes it (so it becomes quasi-seamless).
     When ``ratio`` is None, color near the edges will converge
     to the same colour, whereas when ratio is a float number, a blurred
     original image will serve as background.
@@ -564,6 +543,7 @@ def _apodize(what, aporad=None, ratio=None):
 
     Returns:
         The apodized image
+
     """
     if aporad is None:
         mindim = min(what.shape)
@@ -580,9 +560,7 @@ def _apodize(what, aporad=None, ratio=None):
 
 
 def get_apofield(shape, aporad):
-    """
-    Returns an array between 0 and 1 that goes to zero close to the edges.
-    """
+    """Returns an array between 0 and 1 that goes to zero close to the edges."""
     if aporad == 0:
         return np.ones(shape, dtype=float)
     apos = np.hanning(aporad * 2)
@@ -602,8 +580,7 @@ def get_apofield(shape, aporad):
 
 # TODO: Refactor this function, the current shape looks covoluted.
 def frame_img(img, mask, dst, apofield=None):
-    """
-    Given an array, a mask (floats between 0 and 1), and a distance,
+    """Given an array, a mask (floats between 0 and 1), and a distance,
     alter the area where the mask is low (and roughly within dst from the edge)
     so it blends well with the area where the mask is high.
     The purpose of this is removal of spurious frequencies in the image's
@@ -615,6 +592,7 @@ def frame_img(img, mask, dst, apofield=None):
             and what can not (1)
         dst (int): Parameter controlling behavior near edges, value could be
             probably deduced from the mask.
+
     """
     import scipy.ndimage as ndimg
 
@@ -652,8 +630,7 @@ def frame_img(img, mask, dst, apofield=None):
 
 
 def get_borderval(img, radius=None):
-    """
-    Given an image and a radius, examine the average value of the image
+    """Given an image and a radius, examine the average value of the image
     at most radius pixels from the edge
     """
     if radius is None:
@@ -670,8 +647,7 @@ def get_borderval(img, radius=None):
 
 
 def slices2start(slices):
-    """
-    Convenience function.
+    """Convenience function.
     Given a tuple of slices, it returns an array of their starts.
     """
     starts = (slices[0].start, slices[1].start)
@@ -680,8 +656,7 @@ def slices2start(slices):
 
 
 def decompose(what, outshp, coef):
-    """
-    Given an array and a shape, it creates a decomposition of the array in form
+    """Given an array and a shape, it creates a decomposition of the array in form
     of subarrays and their respective position
 
     Args:
@@ -691,6 +666,7 @@ def decompose(what, outshp, coef):
     Returns:
         list: Decomposition --- a list of tuples (subarray (np.ndarray),
         coordinate (np.ndarray))
+
     """
     outshp = np.array(outshp)
     shape = np.array(what.shape)
@@ -700,14 +676,14 @@ def decompose(what, outshp, coef):
 
 
 def starts2dshape(starts):
-    """
-    Given starts of tiles, deduce the shape of the decomposition from them.
+    """Given starts of tiles, deduce the shape of the decomposition from them.
 
     Args:
         starts (list of ints)
 
     Return:
         tuple: shape of the decomposition
+
     """
     ncols = 1
     for start in starts[1:]:
@@ -727,8 +703,7 @@ def getSlices(inshp, outshp, coef):
 
 
 def getCuts(shp0, shp1, coef=0.5):
-    """
-    Given an array shape, tile shape and density coefficient, return list of
+    """Given an array shape, tile shape and density coefficient, return list of
     possible points of the array decomposition.
 
     Args:
@@ -739,12 +714,13 @@ def getCuts(shp0, shp1, coef=0.5):
 
     Returns:
         list: List of tuples (y, x) coordinates of possible tile corners.
+
     """
     # * coef = possible increase of density
     offsets = (shp1 * coef).astype(int)
     starts = [
         _getCut(shap0, shap1, offset)
-        for shap0, shap1, offset in zip(shp0, shp1, offsets)
+        for shap0, shap1, offset in zip(shp0, shp1, offsets, strict=False)
     ]
     assert len(starts) == 2
     res = []
@@ -756,8 +732,7 @@ def getCuts(shp0, shp1, coef=0.5):
 
 
 def _getCut(big, small, offset):
-    """
-    Given a big array length and small array length and an offset,
+    """Given a big array length and small array length and an offset,
     output a list of starts of small arrays, so that they cover the
     big one and their offset is <= the required offset.
 
@@ -767,6 +742,7 @@ def _getCut(big, small, offset):
 
     Returns:
         list - list of possible start locations
+
     """
     # big "reduced"
     big_r = big - small
@@ -784,12 +760,12 @@ def _getCut(big, small, offset):
 
 
 def mkCut(shp0, dims, start):
-    """
-    Make a cut from shp0 and keep the given dimensions.
+    """Make a cut from shp0 and keep the given dimensions.
     Also obey the start, but if it is not possible, shift it backwards
 
     Returns:
         list - List of slices defining the subarray.
+
     """
     assert np.all(shp0 > dims), (
         "The array is too small - shape %s vs shape %s of cuts " % (shp0, dims)
@@ -818,8 +794,7 @@ def mkCut(shp0, dims, start):
 
 
 def _get_dst1(pt, pts):
-    """
-    Given a point in 2D and vector of points, return vector of distances
+    """Given a point in 2D and vector of points, return vector of distances
     according to Manhattan metrics
     """
     dsts = np.abs(pts - pt)
@@ -828,8 +803,7 @@ def _get_dst1(pt, pts):
 
 
 def get_clusters(points, rad=0):
-    """
-    Given set of points and radius upper bound, return a binary matrix
+    """Given set of points and radius upper bound, return a binary matrix
     telling whether a given point is close to other points according to
     :func:`_get_dst1`.
     (point = matrix row).
@@ -839,6 +813,7 @@ def get_clusters(points, rad=0):
         rad (float): What is closer than ``rad`` is considered *close*.
 
     The result matrix has always True on diagonals.
+
     """
     num = len(points)
     clusters = np.zeros((num, num), bool)
@@ -849,8 +824,7 @@ def get_clusters(points, rad=0):
 
 
 def get_best_cluster(points, scores, rad=0):
-    """
-    Given some additional data, choose the best cluster and the index
+    """Given some additional data, choose the best cluster and the index
     of the best point in the best cluster.
     Score of a cluster is sum of scores of points in it.
 
@@ -860,6 +834,7 @@ def get_best_cluster(points, scores, rad=0):
     Args:
         points: Array of bools, indices that belong to the cluster are True
         scores: Rates a point by a number --- higher is better.
+
     """
     clusters = get_clusters(points, rad)
     cluster_scores = np.zeros(len(points))
@@ -871,26 +846,21 @@ def get_best_cluster(points, scores, rad=0):
 
 
 def _ang2complex(angles):
-    """
-    Transform angle in degrees to complex phasor
-    """
+    """Transform angle in degrees to complex phasor"""
     angles = np.deg2rad(angles)
     ret = np.exp(1j * angles)
     return ret
 
 
 def _complex2ang(cplx):
-    """
-    Inversion of :func:`_ang2complex`
-    """
+    """Inversion of :func:`_ang2complex`"""
     ret = np.angle(cplx)
     ret = np.rad2deg(ret)
     return ret
 
 
 def get_values(cluster, shifts, scores, angles, scales):
-    """
-    Given a cluster and some vectors, return average values of the data
+    """Given a cluster and some vectors, return average values of the data
     in the cluster.
     Treat the angular data carefully.
     """

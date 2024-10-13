@@ -1,6 +1,6 @@
 import unittest as ut
 
-import imreg_dft.tform as tform
+from imreg_dft import tform
 
 
 class TestImreg(ut.TestCase):

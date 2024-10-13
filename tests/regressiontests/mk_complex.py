@@ -1,9 +1,7 @@
 import numpy as np
-
 import scipy as sp
 import scipy.io
 import scipy.signal
-
 
 np.random.seed(4)
 abs_val, phase_val = [sp.rand(13, 20) for _ in range(2)]

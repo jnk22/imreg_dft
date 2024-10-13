@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # show.py
 
 # Copyright (c) 2016-?, Matěj Týč
@@ -31,9 +30,7 @@
 
 import argparse as ap
 
-from imreg_dft import cli
-from imreg_dft import reporting
-
+from imreg_dft import cli, reporting
 
 TOSHOW = (
     "filtered input (I)mages",
@@ -84,9 +81,7 @@ def create_parser():
 def _show_valid(stri):
     stripped = stri.rstrip(TOSHOW_ABBR)
     if len(stripped) > 0:
-        raise ap.ArgumentError(
-            "Argument contains invalid characters: {}".format(stripped)
-        )
+        raise ap.ArgumentError(f"Argument contains invalid characters: {stripped}")
     return stri
 
 

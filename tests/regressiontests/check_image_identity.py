@@ -1,9 +1,8 @@
-import sys
 import argparse as ap
+import sys
 
 import numpy as np
 from scipy import misc
-
 
 STR2NORM = dict(
     max=np.max,
@@ -36,20 +35,16 @@ def main():
 
     norm = STR2NORM[args.norm]
     if args.verbose:
-        print(
-            "Reference norm: {:.4g}\nDifference norm: {:.4g}".format(
-                norm(mean), norm(diff)
-            )
-        )
+        print(f"Reference norm: {norm(mean):.4g}\nDifference norm: {norm(diff):.4g}")
     ret = 0
     if norm(mean) * args.thresh < norm(diff):
         # The difference is too big
         ret = 1
-        msg = "{} and {} are significantly different :-(\n".format(args.one, args.two)
+        msg = f"{args.one} and {args.two} are significantly different :-(\n"
         sys.stderr.write(msg)
 
     if args.verbose:
-        print("The two images are {}.".format(RET2RES[ret]))
+        print(f"The two images are {RET2RES[ret]}.")
 
     sys.exit(ret)
 

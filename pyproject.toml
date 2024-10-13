@@ -70,3 +70,7 @@ docstring-code-format = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = ["COM812", "D203", "D213", "ISC001"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["D104", "F401"]
+"tests/*.py" = ["S101"]

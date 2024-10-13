@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # reporting.py
 
 # Copyright (c) 2014-?, Matěj Týč
@@ -32,11 +30,9 @@
 import contextlib
 
 import numpy as np
+
 # We intentionally don't import matplotlib on this level - we want this module
 # to be importable even if one doesn't have matplotlib
-
-from imreg_dft import imreg
-
 
 TEXT_MODE = "plain"
 
@@ -58,9 +54,8 @@ def report_wrapper(orig, index):
         orig.pop_prefix(prefix)
 
 
-class ReportsWrapper(object):
-    """
-    A wrapped dictionary.
+class ReportsWrapper:
+    """A wrapped dictionary.
     It allows a parent function to put it in a mode, in which it will
     prefix keys of items set.
     """
@@ -121,9 +116,7 @@ class ReportsWrapper(object):
     def pop_prefix(self, idx):
         assert (
             self.prefixes[-1] == idx
-        ), "Real previous prefix ({}) differs from the specified ({})".format(
-            self.prefixes[-1], idx
-        )
+        ), f"Real previous prefix ({self.prefixes[-1]}) differs from the specified ({idx})"
         assert (
             len(self.prefixes) > 1
         ), "There is not more than 1 prefix left, you can't remove any."
@@ -131,18 +124,16 @@ class ReportsWrapper(object):
         self.idx = self.prefixes[-1]
 
 
-class Rect_callback(object):
+class Rect_callback:
     def __call__(self, idx, LLC, dims):
         self._call(idx, LLC, dims)
 
     def _call(self, idx, LLC, dims):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class Rect_mpl(Rect_callback):
-    """
-    A class that can draw image tiles nicely
-    """
+    """A class that can draw image tiles nicely"""
 
     def __init__(self, subplot, shape):
         self.subplot = subplot
@@ -181,10 +172,10 @@ class Rect_mpl(Rect_callback):
 
 
 def slices2rects(slices, rect_cb):
-    """
-    Args:
-        slices: List of slice objects
-        rect_cb (callable): Check :class:`Rect_callback`.
+    """Args:
+    slices: List of slice objects
+    rect_cb (callable): Check :class:`Rect_callback`.
+
     """
     for ii, (sly, slx) in enumerate(slices):
         LLC = np.array((sly.start, slx.start))
@@ -253,7 +244,7 @@ def imshow_logpolars(fig, spectra, log_base, im_shape):
         grid[ii].set_ylabel(_t("azimuth / degrees"))
 
         xticklabels = [
-            "{:.3g}".format(tick * 2 / im_shape[0]) for tick in grid[ii].get_xticks()
+            f"{tick * 2 / im_shape[0]:.3g}" for tick in grid[ii].get_xticks()
         ]
 
         grid[ii].set_xticklabels(
@@ -341,7 +332,7 @@ def imshow_pcorr_translation(fig, cpss, extent, results, successes):
             center[0], center[1], "o", color="r", fillstyle="none", markersize=18, lw=8
         )
         pl.annotate(
-            _t("succ: {:.3g}".format(successes[idx])),
+            _t(f"succ: {successes[idx]:.3g}"),
             xy=center,
             xytext=(0, 9),
             textcoords="offset points",
@@ -408,7 +399,7 @@ def imshow_pcorr(
         center[0], center[1], "o", color="r", fillstyle="none", markersize=18, lw=8
     )
     grid[0].annotate(
-        _t("succ: {:.3g}".format(success)),
+        _t(f"succ: {success:.3g}"),
         xy=center,
         xytext=(0, 9),
         textcoords="offset points",
@@ -474,11 +465,11 @@ def imshow_results(fig, successes, shape, cluster):
     axes.set_yticks(np.arange(shape[0]))
 
     coords = np.unravel_index(np.arange(len(successes)), shape)
-    for idx, coord in enumerate(zip(*coords)):
+    for idx, coord in enumerate(zip(*coords, strict=False)):
         color = "w"
         if cluster[idx]:
             color = "r"
-        label = "{:02d}\n({},{})".format(idx, coord[1], coord[0])
+        label = f"{idx:02d}\n({coord[1]},{coord[0]})"
         axes.text(
             coord[1],
             coord[0],
@@ -499,7 +490,7 @@ def mk_factory(prefix, basedim, dpi=150, ftype="png"):
             _basedim = basedim[0]
         fig = plt.figure(figsize=_basedim * np.array((x, y)))
         yield fig
-        fname = "{}{}.{}".format(prefix, basename, ftype)
+        fname = f"{prefix}{basename}.{ftype}"
         fig.savefig(fname, dpi=dpi, bbox_inches="tight")
         del fig
 
@@ -515,7 +506,7 @@ def report_tile(reports, prefix, multiplier=5.5):
     aspect = reports.get_global("aspect")
     basedim = multiplier * np.array((aspect, 1), float)
     for index, contents in reports.get_contents():
-        fig_factory = mk_factory("{}-{}".format(prefix, index), basedim, dpi, ftype)
+        fig_factory = mk_factory(f"{prefix}-{index}", basedim, dpi, ftype)
         for key, value in contents.items():
             _report_switch(fig_factory, key, value, reports, contents, terse)
 
@@ -576,9 +567,9 @@ def _report_switch(fig_factory, key, value, reports, contents, terse):
             )
     elif "t0-orig" in key and reports.show("translation"):
         t_flip = ("0", "180")
-        origs = [contents["t{}-orig".format(idx)] for idx in range(2)]
-        tvecs = [contents["t{}-tvec".format(idx)][::-1] for idx in range(2)]
-        successes = [contents["t{}-success".format(idx)] for idx in range(2)]
+        origs = [contents[f"t{idx}-orig"] for idx in range(2)]
+        tvecs = [contents[f"t{idx}-tvec"][::-1] for idx in range(2)]
+        successes = [contents[f"t{idx}-success"] for idx in range(2)]
         halves = np.array(origs[0].shape) / 2.0
         extent = np.array((-halves[1], halves[1], -halves[0], halves[0]))
 
@@ -587,7 +578,7 @@ def _report_switch(fig_factory, key, value, reports, contents, terse):
                 imshow_pcorr_translation(fig, origs, extent, tvecs, successes)
         else:
             for idx in range(2):
-                basename = "t_{}".format(t_flip[idx])
+                basename = f"t_{t_flip[idx]}"
                 ncols = 2
                 if terse:
                     ncols = 1
@@ -595,7 +586,7 @@ def _report_switch(fig_factory, key, value, reports, contents, terse):
                     imshow_pcorr(
                         fig,
                         origs[idx],
-                        contents["t{}-postproc".format(idx)],
+                        contents[f"t{idx}-postproc"],
                         extent,
                         tvecs[idx],
                         successes[idx],

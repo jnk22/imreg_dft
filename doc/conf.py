@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # imreg_dft documentation build configuration file, created by
 # sphinx-quickstart2 on Sun Oct 12 15:24:34 2014.
 #
@@ -12,12 +10,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
+import sys
 
 have_mock = False
 try:
-    import mock
+    from unittest import mock
 
     have_mock = True
 except ImportError:

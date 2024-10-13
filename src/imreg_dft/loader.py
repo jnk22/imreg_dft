@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # loader.py
 
 # Copyright (c) 2014-?, Matěj Týč
@@ -28,8 +27,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-The module contains a layer of functionality that allows
+"""The module contains a layer of functionality that allows
 abstract saving and loading of files.
 
 A loader class inherits from :class:`Loader`.
@@ -100,8 +98,7 @@ def _str2flat(stri):
 
 
 def flatten(image, char):
-    """
-    Given a layered image (typically (y, x, RGB)), return a plain 2D image
+    """Given a layered image (typically (y, x, RGB)), return a plain 2D image
     (y, x) according to a spec.
 
     Args:
@@ -110,6 +107,7 @@ def flatten(image, char):
 
     Returns:
         np.ndarray - The 2D image.
+
     """
     if image.ndim < 3:
         return image
@@ -125,7 +123,7 @@ def flatten(image, char):
     return ret
 
 
-class LoaderSet(object):
+class LoaderSet:
     _LOADERS = []
     # singleton-like functionality
     _we = None
@@ -141,11 +139,11 @@ class LoaderSet(object):
         LoaderSet._we = self
 
     def _choose_loader(self, fname):
-        """
-        Use autodetection to select a loader to use.
+        """Use autodetection to select a loader to use.
 
         Returns:
             Loader instance or None if no loader can be used.
+
         """
         for loader in self.loaders:
             if loader.guessCanLoad(fname):
@@ -154,8 +152,7 @@ class LoaderSet(object):
         return None
 
     def get_loader(self, fname, lname=None):
-        """
-        Try to select a loader. Either we know what we want, or an
+        """Try to select a loader. Either we know what we want, or an
         autodetection will take place.
         Exceptions are raised when things go wrong.
         """
@@ -163,7 +160,7 @@ class LoaderSet(object):
             ret = self._choose_loader(fname)
             if ret is None:
                 msg = "No loader wanted to load '%s' during autodetection" % fname
-                raise IOError(msg)
+                raise OSError(msg)
         else:
             ret = self._get_loader(lname)
         # Make sure that we don't return the same instance multiple times
@@ -178,22 +175,17 @@ class LoaderSet(object):
         return self.loader_dict(lname)
 
     def get_loader_names(self):
-        """
-        What are the names of loaders that we know.
-        """
+        """What are the names of loaders that we know."""
         ret = self.loader_dict.keys()
         return tuple(ret)
 
     @classmethod
     def add_loader(cls, loader_cls):
-        """
-        Use this method (at early run-time) to register a loader
-        """
+        """Use this method (at early run-time) to register a loader"""
         cls._LOADERS.append(loader_cls)
 
     def print_loader_help(self, lname=None):
-        """
-        Print info about loaders.
+        """Print info about loaders.
         Either print short summary about all loaders, or focus just on one.
         """
         if lname is None:
@@ -219,9 +211,7 @@ class LoaderSet(object):
         print(msg)
 
     def distribute_opts(self, opts):
-        """
-        Propagate loader options to all loaders.
-        """
+        """Propagate loader options to all loaders."""
         if opts is None:
             # don't return, do something so possible problems surface.
             opts = {}
@@ -230,8 +220,7 @@ class LoaderSet(object):
 
 
 def loader_of(lname, priority):
-    """
-    A decorator interconnecting an abstract loader with the rest of imreg_dft
+    """A decorator interconnecting an abstract loader with the rest of imreg_dft
     It sets the "nickname" of the loader and its priority during autodetection
     """
 
@@ -244,10 +233,8 @@ def loader_of(lname, priority):
     return wrapped
 
 
-class Loader(object):
-    """
-
-    .. automethod:: _save
+class Loader:
+    """.. automethod:: _save
     .. automethod:: _load2reg
     """
 
@@ -267,8 +254,7 @@ class Loader(object):
         self.saveopts = {}
 
     def spawn(self):
-        """
-        Makes a new instance of the object's class
+        """Makes a new instance of the object's class
         BUT it conserves vital data.
         """
         cls = self.__class__
@@ -284,20 +270,18 @@ class Loader(object):
             self._opts[opt] = val
 
     def guessCanLoad(self, fname):
-        """
-        Guess whether we can load a filename just according to the name
+        """Guess whether we can load a filename just according to the name
         (extension)
         """
         return False
 
     def load2reg(self, fname):
-        """
-        Given a filename, it loads it and returns in a form suitable for
+        """Given a filename, it loads it and returns in a form suitable for
         registration (i.e. float, flattened, ...).
         """
         try:
             ret = self._load2reg(fname)
-        except IOError as err:
+        except OSError as err:
             print("Couldn't load '%s': %s" % (fname, err.strerror))
             sys.exit(1)
 
@@ -310,8 +294,7 @@ class Loader(object):
         return self.loaded
 
     def _load2reg(self, fname):
-        """
-        To be implemented by derived class.
+        """To be implemented by derived class.
         Load data from fname in a way that they can be used in the
         registration process (so it is a 2D array).
         Possibly take into account options passed upon the class creation.
@@ -319,17 +302,14 @@ class Loader(object):
         raise NotImplementedError("Use the derived class")
 
     def _save(self, fname, tformed):
-        """
-        To be implemented by derived class.
+        """To be implemented by derived class.
         Save data to fname, possibly taking into account previous loads
         and/or options passed upon the class creation.
         """
         raise NotImplementedError("Use the derived class")
 
     def save(self, fname, what, loader):
-        """
-        Given the registration result, save the transformed input.
-        """
+        """Given the registration result, save the transformed input."""
         sopts = loader.saveopts
         self.saveopts.update(sopts)
         self._save(fname, what)
@@ -366,15 +346,14 @@ class _MatLoader(Loader):
                     "You have to supply an input key, there is an ambiguity "
                     "of what to load, candidates are: %s" % (tuple(valid),)
                 )
-            else:
-                key = valid[0]
+            key = valid[0]
         else:
             key = self._opts["in"]
             keys = mat.keys()
             if key not in keys:
                 raise LookupError(
-                    "You requested load of '{}', but you can only choose from"
-                    " {}".format(key, tuple(keys))
+                    f"You requested load of '{key}', but you can only choose from"
+                    f" {tuple(keys)}"
                 )
         ret = mat[key]
         self.saveopts["loaded_all"] = mat
@@ -429,7 +408,7 @@ class _PILLoader(Loader):
         img.save(fname)
 
     def guessCanLoad(self, fname):
-        "We think that we can do everything"
+        """We think that we can do everything"""
         return True
 
 
@@ -453,7 +432,7 @@ class _HDRLoader(Loader):
         import numpy as np
 
         basename = fname.rstrip(".hdr")
-        with open(basename + ".hdr", "r") as fh:
+        with open(basename + ".hdr") as fh:
             hdr = fh.readlines()
         img = np.fromfile(basename + ".img", np.uint8, -1)
         img.shape = int(hdr[4].split()[-1]), int(hdr[3].split()[-1])
@@ -523,8 +502,7 @@ def update_parser(parser):
 
 
 def settle_loaders(args, fnames=None):
-    """
-    The function to be called as soon as args are parsed.
+    """The function to be called as soon as args are parsed.
     It:
 
     #. If requested by passed args, it prints loaders help
@@ -537,6 +515,7 @@ def settle_loaders(args, fnames=None):
 
     Returns:
         list - list of loaders to load respective fnames.
+
     """
     if args.help_loader:
         LOADERS.print_loader_help(args.loader)
