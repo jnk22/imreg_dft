@@ -14,12 +14,8 @@ jobs:
 
     strategy:
       matrix:
-        # TODO: Revert these lines if tests succeed.
-        # python-version: ["3.10", "3.11", "3.12"]
-        # os: [ubuntu-latest, macos-latest, windows-latest]
-        # NOTE: Test only Python 3.10 on windows environment during pull request.
-        os: [windows-latest]
-        python-version: ["3.10"]
+        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v4
