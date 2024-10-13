@@ -1,5 +1,7 @@
 import unittest as ut
 
+import numpy as np
+
 from imreg_dft import imreg
 
 
@@ -22,3 +24,25 @@ class TestImreg(ut.TestCase):
         assert odds == -1
         odds = imreg._get_odds(10, 200, 0.1)
         assert odds == -1
+
+
+def test_registration_contains_all_keys() -> None:
+    """Verify that the registration result contains all expected return values."""
+    im1 = np.ones((128,) * 2)
+    im2 = np.ones((128,) * 2)
+
+    result = imreg.similarity(im1, im2)
+    expected_keys = {
+        "tvec",
+        "success",
+        "angle",
+        "scale",
+        "Dscale",
+        "Dangle",
+        "Dt",
+        "timg",
+    }
+
+    missing_keys = expected_keys - result.keys()
+
+    assert not missing_keys, f"Result is missing keys: {missing_keys}"
