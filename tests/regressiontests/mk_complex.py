@@ -16,7 +16,7 @@ for img in (abs_val, phase_val):
 
 cplx = dest * np.exp(1j * np.pi * 2 * dest2)
 
-first = cplx[shift[0]:, shift[1]:]
-second = cplx[:-shift[0], :-shift[1]]
+first = cplx[shift[0] :, shift[1] :]
+second = cplx[: -shift[0], : -shift[1]]
 sp.io.savemat("first.mat", dict(rca=first))
 sp.io.savemat("first2.mat", dict(rca=second))

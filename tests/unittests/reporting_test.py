@@ -29,5 +29,5 @@ class TestReports(ut.TestCase):
         self.assertIn("five", wrapper._stuff[""])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ut.main()

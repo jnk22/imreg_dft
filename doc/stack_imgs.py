@@ -5,7 +5,7 @@ import scipy.misc
 
 import matplotlib
 
-matplotlib.use('Cairo')
+matplotlib.use("Cairo")
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
@@ -16,21 +16,23 @@ _LABELS = "abcde"
 
 def parse():
     parser = ap.ArgumentParser()
+    parser.add_argument("infiles", nargs="+")
     parser.add_argument(
-        "infiles", nargs="+")
-    parser.add_argument(
-        "-s", "--size", default=[5.8, 2.8],
+        "-s",
+        "--size",
+        default=[5.8, 2.8],
         type=lambda x: [float(y) for y in x.split(",")],
-        help="Size of the image (inches)")
+        help="Size of the image (inches)",
+    )
     parser.add_argument(
-        "--colormap", default="gray",
-        help="Name of the colormap (in matplotlib.cm namespace)")
+        "--colormap",
+        default="gray",
+        help="Name of the colormap (in matplotlib.cm namespace)",
+    )
     parser.add_argument(
-        "-d", "--dpi", default=200.0, type=float,
-        help="Resolution of the image")
-    parser.add_argument(
-        "-o", "--output", default=None,
-        help="Where to save the result")
+        "-d", "--dpi", default=200.0, type=float, help="Resolution of the image"
+    )
+    parser.add_argument("-o", "--output", default=None, help="Where to save the result")
     ret = parser.parse_args()
     return ret
 
@@ -38,9 +40,8 @@ def parse():
 def _imshow(pl, what, label, cmap):
     pl.grid()
     pl.imshow(what, cmap=cmap)
-    pl.tick_params(axis='both', which='major', labelsize=10)
-    at = AnchoredText(
-        label, loc=2)
+    pl.tick_params(axis="both", which="major", labelsize=10)
+    at = AnchoredText(label, loc=2)
     at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
     pl.add_artist(at)
 

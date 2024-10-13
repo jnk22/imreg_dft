@@ -48,6 +48,7 @@ _POSS = None
 
 def resample(img, coef):
     from scipy import signal
+
     ret = img
     for axis in range(2):
         newdim = int(ret.shape[axis] * coef)
@@ -88,9 +89,10 @@ def _assemble_resdict(ii):
 def _preprocess_extend(ims, extend, low, high, cut, rcoef):
     bigshape = np.array([img.shape for img in ims]).max(0) + 2 * extend
     bigshape = (bigshape * rcoef).astype(int)
-    ims = [_preprocess_extend_single(im, extend, low, high, cut,
-                                     rcoef, bigshape)
-           for im in ims]
+    ims = [
+        _preprocess_extend_single(im, extend, low, high, cut, rcoef, bigshape)
+        for im in ims
+    ]
 
     # Safeguard that the earlier determination of bigshape was correct.
     assert np.all(bigshape == np.array([img.shape for img in ims]).max(0))
@@ -114,13 +116,11 @@ def _postprocess_unextend(ims, im2, extend, rcoef=1):
         ims = [resample(img, 1.0 / rcoef) for img in ims]
         im2 = resample(im2, 1.0 / rcoef)
 
-    ret = [utils.unextend_by(img, extend)
-           for img in ims + [im2]]
+    ret = [utils.unextend_by(img, extend) for img in ims + [im2]]
     return ret
 
 
-def process_images(ims, opts, tosa=None, get_unextended=False,
-                   reports=None):
+def process_images(ims, opts, tosa=None, get_unextended=False, reports=None):
     """
     Args:
         tosa (np.ndarray): An array where to save the transformed subject.
@@ -131,19 +131,28 @@ def process_images(ims, opts, tosa=None, get_unextended=False,
     from imreg_dft import imreg
 
     rcoef = opts["resample"]
-    ims = _preprocess_extend(ims, opts["extend"],
-                             opts["low"], opts["high"], opts["cut"], rcoef)
+    ims = _preprocess_extend(
+        ims, opts["extend"], opts["low"], opts["high"], opts["cut"], rcoef
+    )
     """
     if reports is not None:
         reports["processed-0"] = ims
     """
 
     resdict = imreg._similarity(
-        ims[0], ims[1], opts["iters"], opts["order"], opts["constraints"],
-        opts["filter_pcorr"], opts["exponent"], reports=reports)
+        ims[0],
+        ims[1],
+        opts["iters"],
+        opts["order"],
+        opts["constraints"],
+        opts["filter_pcorr"],
+        opts["exponent"],
+        reports=reports,
+    )
 
     if reports is not None and reports.show(
-            "inputs", "translation", "scale_angle", "transformed"):
+        "inputs", "translation", "scale_angle", "transformed"
+    ):
         reports["aspect"] = ims[0].shape[1] / float(ims[0].shape[0])
         # reporting.report_tile(reports, "reports", aspect)
 
@@ -178,9 +187,8 @@ def process_tile(ii, reports=None):
         # TODO: Add unittests that zero success result
         #   doesn't influence anything
         with reporting.report_wrapper(reports, ii) as wrapped:
-            resdict = process_images((tile, image), opts,
-                                     reports=wrapped)
-        resdict['tvec'] += pos
+            resdict = process_images((tile, image), opts, reports=wrapped)
+        resdict["tvec"] += pos
         if np.isnan(_DIFFS[0]):
             _DIFFS[0] = resdict["Dangle"]
             _DIFFS[1] = resdict["Dscale"]
@@ -226,7 +234,7 @@ def settle_tiles(imgs, tiledim, opts, reports=None):
     coef = 0.41
     img0 = imgs[0]
 
-    tiles, poss = zip(* ird.utils.decompose(img0, tiledim, coef))
+    tiles, poss = zip(*ird.utils.decompose(img0, tiledim, coef))
     nrows, ncols = utils.starts2dshape(poss)
 
     _fill_globals(tiles, poss, imgs[1], opts)
@@ -266,7 +274,8 @@ def settle_tiles(imgs, tiledim, opts, reports=None):
     # Make the quantities estimation even more precise by taking
     # the average of all good tiles
     shift, angle, scale, _ = utils.get_values(
-        cluster, _SHIFTS, _SUCCS, _ANGLES, _SCALES)
+        cluster, _SHIFTS, _SUCCS, _ANGLES, _SCALES
+    )
 
     if reports is not None and reports.show("tile_info"):
         shape = (nrows, ncols)
@@ -286,9 +295,9 @@ def settle_tiles(imgs, tiledim, opts, reports=None):
 
     bgval = utils.get_borderval(imgs[1], 5)
 
-    ims = _preprocess_extend(imgs, opts["extend"],
-                             opts["low"], opts["high"], opts["cut"],
-                             opts["resample"])
+    ims = _preprocess_extend(
+        imgs, opts["extend"], opts["low"], opts["high"], opts["cut"], opts["resample"]
+    )
     im2 = ird.transform_img_dict(ims[1], resdict, bgval, opts["order"])
 
     # TODO: This is kinda dirty

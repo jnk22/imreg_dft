@@ -56,19 +56,21 @@ def _constraints(what):
         if not (0 < len(components) <= 2):
             raise ap.ArgumentTypeError(
                 "We accept at most %d (but at least 1) comma-delimited numbers,"
-                " you have passed us %d" % (len(components), 2))
+                " you have passed us %d" % (len(components), 2)
+            )
         try:
             mean = float(components[0])
         except Exception:
             raise ap.ArgumentTypeError(
-                "The %s value must be a float number, got '%s'."
-                % (what, components[0]))
+                "The %s value must be a float number, got '%s'." % (what, components[0])
+            )
         if what in BOUNDS:
             lo, hi = BOUNDS[what]
             if not lo <= mean <= hi:
                 raise ap.ArgumentTypeError(
                     "The {} value must be a number between {:g} and {:g}, "
-                    "got {:g}.".format(what, lo, hi, mean))
+                    "got {:g}.".format(what, lo, hi, mean)
+                )
         std = 0
         if len(components) == 2:
             std = components[1]
@@ -80,10 +82,11 @@ def _constraints(what):
                 except Exception:
                     raise ap.ArgumentTypeError(
                         "The %s standard deviation spec must be either"
-                        "either a float number or nothing, got '%s'."
-                        % (what, std))
+                        "either a float number or nothing, got '%s'." % (what, std)
+                    )
         ret = (mean, std)
         return ret
+
     return constraint
 
 
@@ -94,7 +97,8 @@ def _float_tuple(string):
     vals = string.split(",")
     if len(vals) != 2:
         raise ap.ArgumentTypeError(
-            "'%s' are not two values delimited by comma" % string)
+            "'%s' are not two values delimited by comma" % string
+        )
     try:
         vals = [float(val) for val in vals]
     except ValueError:
@@ -106,13 +110,14 @@ def _exponent(string):
     """
     Converts the passed string to a float or "inf"
     """
-    if string == 'inf':
+    if string == "inf":
         return string
     try:
         ret = float(string)
     except:
         raise ap.ArgumentTypeError(
-            "'%s' should be either 'inf' or a float value" % string)
+            "'%s' should be either 'inf' or a float value" % string
+        )
     return ret
 
 
@@ -121,102 +126,161 @@ def outmsg(msg):
     Support function for checking of validity of the output format string.
     A test interpolation is performed and exceptions handled.
     """
-    fake_data = dict(scale=1.0, angle=2.0, tx=2, ty=2,
-                     Dscale=0.1, Dangle=0.2, Dt=0.5, success=0.99)
+    fake_data = dict(
+        scale=1.0, angle=2.0, tx=2, ty=2, Dscale=0.1, Dangle=0.2, Dt=0.5, success=0.99
+    )
     tpl = "The string '%s' is not a good format string"
     try:
         msg % fake_data
     except KeyError as exc:
         raise ap.ArgumentTypeError(
-            (tpl + ". The correct string "
-             "has to contain at most %s, but this one also contains an invalid"
-             " value '%s'.") % (msg, fake_data.keys(), exc.args[0]))
+            (
+                tpl + ". The correct string "
+                "has to contain at most %s, but this one also contains an invalid"
+                " value '%s'."
+            )
+            % (msg, fake_data.keys(), exc.args[0])
+        )
     except Exception as exc:
-        raise ap.ArgumentTypeError(
-            (tpl + " - %s") % (msg, str(exc)))
+        raise ap.ArgumentTypeError((tpl + " - %s") % (msg, str(exc)))
     return msg
 
 
 def create_base_parser(parser):
-    parser.add_argument('--extend', type=int, metavar="PIXELS", default=0,
-                        help="Extend images by the specified amount of pixels "
-                        "before the processing (thus eliminating "
-                        "edge effects)")
-    parser.add_argument('--order', type=int, default=1,
-                        help="Interpolation order (1 = linear, 3 = cubic etc)")
+    parser.add_argument(
+        "--extend",
+        type=int,
+        metavar="PIXELS",
+        default=0,
+        help="Extend images by the specified amount of pixels "
+        "before the processing (thus eliminating "
+        "edge effects)",
+    )
+    parser.add_argument(
+        "--order",
+        type=int,
+        default=1,
+        help="Interpolation order (1 = linear, 3 = cubic etc)",
+    )
 
 
 def update_parser_imreg(parser):
-    parser.add_argument('template')
-    parser.add_argument('subject')
-    parser.add_argument('--lowpass', type=_float_tuple,
-                        default=None, metavar="LOW_THRESH,HIGH_THRESH",
-                        help="1,1 means no-op, 0.8,0.9 is a mild filter")
-    parser.add_argument('--highpass', type=_float_tuple,
-                        default=None, metavar="LOW_THRESH,HIGH_THRESH",
-                        help="0,0 means no-op, 0.1,0.2 is a mild filter")
-    parser.add_argument('--cut', type=_float_tuple,
-                        default=None, metavar="LOW_THRESH,HIGH_THRESH",
-                        help="Cap values of the image according to "
-                        "quantile values. "
-                        "0,1 means no-op, 0.01,0.99 is a mild filter")
-    parser.add_argument('--resample', type=float, default=1,
-                        help="Work with resampled images.")
+    parser.add_argument("template")
+    parser.add_argument("subject")
+    parser.add_argument(
+        "--lowpass",
+        type=_float_tuple,
+        default=None,
+        metavar="LOW_THRESH,HIGH_THRESH",
+        help="1,1 means no-op, 0.8,0.9 is a mild filter",
+    )
+    parser.add_argument(
+        "--highpass",
+        type=_float_tuple,
+        default=None,
+        metavar="LOW_THRESH,HIGH_THRESH",
+        help="0,0 means no-op, 0.1,0.2 is a mild filter",
+    )
+    parser.add_argument(
+        "--cut",
+        type=_float_tuple,
+        default=None,
+        metavar="LOW_THRESH,HIGH_THRESH",
+        help="Cap values of the image according to "
+        "quantile values. "
+        "0,1 means no-op, 0.01,0.99 is a mild filter",
+    )
+    parser.add_argument(
+        "--resample", type=float, default=1, help="Work with resampled images."
+    )
     # parser.add_argument('--exponent', type=_exponent, default="inf",
     #                     help="Either 'inf' or float. See the docs.")
-    parser.add_argument('--iters', type=int, default=1,
-                        help="How many iterations to guess the right scale "
-                        "and angle")
+    parser.add_argument(
+        "--iters",
+        type=int,
+        default=1,
+        help="How many iterations to guess the right scale " "and angle",
+    )
     create_base_parser(parser)
     parser.add_argument(
-        '--filter-pcorr', type=int, default=0,
+        "--filter-pcorr",
+        type=int,
+        default=0,
         help="Whether to filter during translation detection. Normally not "
         "needed, but when using low-pass filtering, you may need to increase "
-        "filter radius (0 means no filtering, 4 should be enough)")
+        "filter radius (0 means no filtering, 4 should be enough)",
+    )
     parser.add_argument(
-        '--print-result', action="store_true", default=False,
-        help="We don't print anything unless this option is specified")
+        "--print-result",
+        action="store_true",
+        default=False,
+        help="We don't print anything unless this option is specified",
+    )
     parser.add_argument(
-        '--print-format', type=outmsg,
+        "--print-format",
+        type=outmsg,
         default="scale: %(scale).5g +-%(Dscale).4g\n"
         "angle: %(angle).6g +-%(Dangle).5g\n"
         "shift (x, y): %(tx).6g, %(ty).6g +-%(Dt).4g\nsuccess: %(success).4g\n",
         help="Print a string (to stdout) in a given format. A dictionary "
         "containing the 'scale', 'angle', 'tx', 'ty', 'Dscale', 'Dangle', "
-        "'Dt' and 'success' keys will be passed for string interpolation")
+        "'Dt' and 'success' keys will be passed for string interpolation",
+    )
     parser.add_argument(
-        '--tile', action="store_true", default=False, help="If the template "
+        "--tile",
+        action="store_true",
+        default=False,
+        help="If the template "
         "is larger than the subject, break the template to pieces of size "
-        "similar to subject size.")
-    parser.add_argument('--version', action="version",
-                        version="imreg_dft %s" % ird.__version__,
-                        help="Just print version and exit")
+        "similar to subject size.",
+    )
     parser.add_argument(
-        "--angle", type=_constraints("angle"),
-        metavar="MEAN[,STD]", default=(0, None),
-        help="The mean and standard deviation of the expected angle. ")
+        "--version",
+        action="version",
+        version="imreg_dft %s" % ird.__version__,
+        help="Just print version and exit",
+    )
     parser.add_argument(
-        "--scale", type=_constraints("scale"),
-        metavar="MEAN[,STD]", default=(1, None),
-        help="The mean and standard deviation of the expected scale. ")
+        "--angle",
+        type=_constraints("angle"),
+        metavar="MEAN[,STD]",
+        default=(0, None),
+        help="The mean and standard deviation of the expected angle. ",
+    )
     parser.add_argument(
-        "--tx", type=_constraints("shift"),
-        metavar="MEAN[,STD]", default=(0, None),
-        help="The mean and standard deviation of the expected X translation. ")
+        "--scale",
+        type=_constraints("scale"),
+        metavar="MEAN[,STD]",
+        default=(1, None),
+        help="The mean and standard deviation of the expected scale. ",
+    )
     parser.add_argument(
-        "--ty", type=_constraints("shift"),
-        metavar="MEAN[,STD]", default=(0, None),
-        help="The mean and standard deviation of the expected Y translation. ")
-    parser.add_argument('--output', '-o',
-                        help="Where to save the transformed subject.")
+        "--tx",
+        type=_constraints("shift"),
+        metavar="MEAN[,STD]",
+        default=(0, None),
+        help="The mean and standard deviation of the expected X translation. ",
+    )
+    parser.add_argument(
+        "--ty",
+        type=_constraints("shift"),
+        metavar="MEAN[,STD]",
+        default=(0, None),
+        help="The mean and standard deviation of the expected Y translation. ",
+    )
+    parser.add_argument("--output", "-o", help="Where to save the transformed subject.")
     loader.update_parser(parser)
 
 
 def create_parser():
     parser = ap.ArgumentParser()
     update_parser_imreg(parser)
-    parser.add_argument('--show', action="store_true", default=False,
-                        help="Whether to show registration result")
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        default=False,
+        help="Whether to show registration result",
+    )
     return parser
 
 
@@ -287,8 +351,7 @@ def _get_resdict(imgs, opts, tosa=None):
         resdict = tiles.process_images(imgs, opts, tosa, True, reports=reports)
 
     if reports is not None:
-        reports.set_global("aspect",
-                           imgs[0].shape[1] / float(imgs[0].shape[0]))
+        reports.set_global("aspect", imgs[0].shape[1] / float(imgs[0].shape[0]))
 
     return resdict
 
@@ -312,12 +375,12 @@ def run(template, subject, opts):
         tosa = utils.extend_to_3D(tosa, imgs[0].shape[:3])
 
     resdict = _get_resdict(imgs, opts, tosa)
-    im0, im1, im2 = resdict['unextended']
+    im0, im1, im2 = resdict["unextended"]
 
     if opts["print_format"] is not None:
         msg = opts["print_format"] % resdict
         msg = msg.encode("utf-8")
-        msg = msg.decode('unicode_escape')
+        msg = msg.decode("unicode_escape")
         sys.stdout.write(msg)
 
     if outname is not None:
@@ -325,6 +388,7 @@ def run(template, subject, opts):
 
     if opts["show"]:
         import pylab as pyl
+
         fig = pyl.figure()
         imreg.imshow(im0, im1, im2, fig=fig)
         pyl.show()

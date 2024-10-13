@@ -44,11 +44,15 @@ import imreg_dft.utils as utils
 def create_parser():
     parser = ap.ArgumentParser()
     parser.add_argument("subject")
-    parser.add_argument("transformation", nargs="?", default="-",
-                        help="The transformation string.")
     parser.add_argument(
-        "--invert", default=False, action="store_true",
-        help="Invert the transformation (not clear what this is good for)")
+        "transformation", nargs="?", default="-", help="The transformation string."
+    )
+    parser.add_argument(
+        "--invert",
+        default=False,
+        action="store_true",
+        help="Invert the transformation (not clear what this is good for)",
+    )
     parser.add_argument("outname")
     cli.create_base_parser(parser)
     grp = parser.add_mutually_exclusive_group()
@@ -70,8 +74,7 @@ def _str2tform(tstr):
         r"success:\s*(?P<success>\S*)\s*"
     )
     match = re.search(rexp, tstr, re.MULTILINE)
-    assert match is not None, \
-        "No match"
+    assert match is not None, "No match"
     ret = dict()
     parsed = match.groupdict()
     for key, val in parsed.items():
@@ -112,8 +115,9 @@ def args2dict(args):
         template_shape = [int(x) for x in args.template_shape.split(",")]
     else:
         template_shape = ret["subject"].shape[:2]
-    assert template_shape is not None, \
-        "Template shape should have been determined by now, wtf that it wasn't"
+    assert (
+        template_shape is not None
+    ), "Template shape should have been determined by now, wtf that it wasn't"
     ret["loader"] = _loader
     ret["shape"] = template_shape
     tstring = args.transformation

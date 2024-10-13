@@ -74,10 +74,11 @@ def _str2nptype(stri):
     except ValueError:
         return stri
 
+
 def _str2nptype_original(stri):
     import numpy as np
-    msg = ("The string '%s' is supposed to correspond to a "
-           "numpy type" % stri)
+
+    msg = "The string '%s' is supposed to correspond to a " "numpy type" % stri
     try:
         typ = getattr(np, stri)
     except Exception as exc:
@@ -92,8 +93,9 @@ def _str2nptype_original(stri):
 
 
 def _str2flat(stri):
-    assert stri in "R,G,B,V".split(","), \
+    assert stri in "R,G,B,V".split(","), (
         "Flat value has to be one of R, G, B, V, is '%s' instead" % stri
+    )
     return stri
 
 
@@ -160,8 +162,7 @@ class LoaderSet(object):
         if lname is None:
             ret = self._choose_loader(fname)
             if ret is None:
-                msg = ("No loader wanted to load '%s' during autodetection"
-                       % fname)
+                msg = "No loader wanted to load '%s' during autodetection" % fname
                 raise IOError(msg)
         else:
             ret = self._get_loader(lname)
@@ -200,7 +201,10 @@ class LoaderSet(object):
             # Lowest priority first - they are usually the most general ones
             for loader in self.loaders[::-1]:
                 msg += "\n\t%s: %s\n\tAccepts options: %s\n" % (
-                    loader.name, loader.desc, tuple(loader.opts.keys()))
+                    loader.name,
+                    loader.desc,
+                    tuple(loader.opts.keys()),
+                )
         else:
             loader = self.loader_dict[lname]
             msg = "Loader '%s':\n" % loader.name
@@ -208,7 +212,10 @@ class LoaderSet(object):
             msg += "Accepts options:\n"
             for opt in loader.opts:
                 msg += "\t'%s' (default '%s'): %s\n" % (
-                    opt, loader.defaults[opt], loader.opts[opt], )
+                    opt,
+                    loader.defaults[opt],
+                    loader.opts[opt],
+                )
         print(msg)
 
     def distribute_opts(self, opts):
@@ -227,11 +234,13 @@ def loader_of(lname, priority):
     A decorator interconnecting an abstract loader with the rest of imreg_dft
     It sets the "nickname" of the loader and its priority during autodetection
     """
+
     def wrapped(cls):
         cls.name = lname
         cls.priority = priority
         LoaderSet.add_loader(cls)
         return cls
+
     return wrapped
 
 
@@ -241,6 +250,7 @@ class Loader(object):
     .. automethod:: _save
     .. automethod:: _load2reg
     """
+
     name = None
     priority = 10
     desc = ""
@@ -294,8 +304,9 @@ class Loader(object):
         return ret
 
     def get2save(self):
-        assert self.loaded is not None, \
-            "Saving without loading beforehand, which is not supported. "
+        assert (
+            self.loaded is not None
+        ), "Saving without loading beforehand, which is not supported. "
         return self.loaded
 
     def _load2reg(self, fname):
@@ -327,15 +338,15 @@ class Loader(object):
 @loader_of("mat", 10)
 class _MatLoader(Loader):
     desc = "Loader of .mat (MATLAB v5) binary files"
-    opts = {"in": "The structure to load (empty => autodetect)",
-            "out": "The structure to save the result to (empty => the same "
-                   "as the 'in'",
-            "type": "Name of the numpy data type for the output (such as "
-                    "int, uint8 etc.)",
-            "flat": "How to flatten (the possibly RGB image) for the "
-                    "registration. Values can be R, G, B or V (V for value - "
-                    "a number proportional to average of R, G and B)",
-            }
+    opts = {
+        "in": "The structure to load (empty => autodetect)",
+        "out": "The structure to save the result to (empty => the same " "as the 'in'",
+        "type": "Name of the numpy data type for the output (such as "
+        "int, uint8 etc.)",
+        "flat": "How to flatten (the possibly RGB image) for the "
+        "registration. Values can be R, G, B or V (V for value - "
+        "a number proportional to average of R, G and B)",
+    }
     defaults = {"in": "", "out": "", "type": "float", "flat": "V"}
     str2val = {"type": _str2nptype, "flat": _str2flat}
 
@@ -346,13 +357,15 @@ class _MatLoader(Loader):
 
     def _load2reg(self, fname):
         from scipy import io
+
         mat = io.loadmat(fname)
         if self._opts["in"] == "":
             valid = [key for key in mat if not key.startswith("_")]
             if len(valid) != 1:
                 raise RuntimeError(
                     "You have to supply an input key, there is an ambiguity "
-                    "of what to load, candidates are: %s" % (tuple(valid),))
+                    "of what to load, candidates are: %s" % (tuple(valid),)
+                )
             else:
                 key = valid[0]
         else:
@@ -361,7 +374,8 @@ class _MatLoader(Loader):
             if key not in keys:
                 raise LookupError(
                     "You requested load of '{}', but you can only choose from"
-                    " {}".format(key, tuple(keys)))
+                    " {}".format(key, tuple(keys))
+                )
         ret = mat[key]
         self.saveopts["loaded_all"] = mat
         self.saveopts["key"] = key
@@ -372,9 +386,11 @@ class _MatLoader(Loader):
 
     def _save(self, fname, tformed):
         from scipy import io
+
         if self._opts["out"] == "":
-            assert "key" in self.saveopts, \
-                "Don't know how to save the output - what .mat struct?"
+            assert (
+                "key" in self.saveopts
+            ), "Don't know how to save the output - what .mat struct?"
             key = self.saveopts["key"]
         else:
             key = self._opts["out"]
@@ -398,6 +414,7 @@ class _PILLoader(Loader):
 
     def _load2reg(self, fname):
         from scipy import misc
+
         loaded = misc.imread(fname)
         self.loaded = loaded
         ret = loaded
@@ -407,6 +424,7 @@ class _PILLoader(Loader):
 
     def _save(self, fname, tformed):
         from scipy import misc
+
         img = misc.toimage(tformed)
         img.save(fname)
 
@@ -417,8 +435,10 @@ class _PILLoader(Loader):
 
 @loader_of("hdr", 10)
 class _HDRLoader(Loader):
-    desc = ("Loader of .hdr and .img binary files. Supply the '.hdr' as input,"
-            "a '.img' with the same basename is expected.")
+    desc = (
+        "Loader of .hdr and .img binary files. Supply the '.hdr' as input,"
+        "a '.img' with the same basename is expected."
+    )
     opts = {"norm": "Whether to divide the value by 255.0 (0 for not to)"}
     defaults = {"norm": "1"}
 
@@ -431,10 +451,11 @@ class _HDRLoader(Loader):
     def _load2reg(self, fname):
         """Return image data from img&hdr uint8 files."""
         import numpy as np
+
         basename = fname.rstrip(".hdr")
-        with open(basename + '.hdr', 'r') as fh:
+        with open(basename + ".hdr", "r") as fh:
             hdr = fh.readlines()
-        img = np.fromfile(basename + '.img', np.uint8, -1)
+        img = np.fromfile(basename + ".img", np.uint8, -1)
         img.shape = int(hdr[4].split()[-1]), int(hdr[3].split()[-1])
         if int(self._opts["norm"]):
             img = img.astype(np.float64)
@@ -443,6 +464,7 @@ class _HDRLoader(Loader):
 
     def _save(self, fname, tformed):
         import numpy as np
+
         # Shouldn't happen, just to make sure
         tformed[tformed > 1.0] = 1.0
         tformed[tformed < 0.0] = 0.0
@@ -453,14 +475,15 @@ class _HDRLoader(Loader):
 
 def _parse_opts(stri):
     from argparse import ArgumentTypeError
+
     components = stri.split(",")
     ret = {}
     for comp in components:
         sides = comp.split("=")
         if len(sides) != 2:
             raise ArgumentTypeError(
-                "The options spec has to look like 'option=value', got %s."
-                % comp)
+                "The options spec has to look like 'option=value', got %s." % comp
+            )
         lhs, rhs = sides
         valid_optname = False
         for loader in LOADERS.loaders:
@@ -469,25 +492,34 @@ def _parse_opts(stri):
                 break
         if not valid_optname:
             raise ArgumentTypeError(
-                "The option '%s' is not understood by any loader" % lhs)
+                "The option '%s' is not understood by any loader" % lhs
+            )
         ret[lhs] = rhs
     return ret
 
 
 def update_parser(parser):
     parser.add_argument(
-        "--loader", choices=LOADERS.get_loader_names(), default=None,
+        "--loader",
+        choices=LOADERS.get_loader_names(),
+        default=None,
         help="Force usage of a concrete loader (default is autodetection). "
         "If you plan on using two types of loaders to load input, or save the"
-        " output, autodetection is the only way to achieve this.")
+        " output, autodetection is the only way to achieve this.",
+    )
     parser.add_argument(
-        "--loader-opts", default=None, type=_parse_opts,
+        "--loader-opts",
+        default=None,
+        type=_parse_opts,
         help="Options for a loader "
-        "(use --loader to make sure that one is used or read the docs.)")
+        "(use --loader to make sure that one is used or read the docs.)",
+    )
     parser.add_argument(
-        "--help-loader", default=False, action="store_true",
-        help="Get help on all loaders or on the current loader "
-        "and its options.")
+        "--help-loader",
+        default=False,
+        action="store_true",
+        help="Get help on all loaders or on the current loader " "and its options.",
+    )
 
 
 def settle_loaders(args, fnames=None):

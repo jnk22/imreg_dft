@@ -37,7 +37,10 @@ class TestUtils(ut.TestCase):
             where = np.zeros(whs)
             embd = utils.embed_to(where, what.copy())
             undone = utils.undo_embed(embd, what.shape)
-            self.assertEqual(what.shape, undone.shape, )
+            self.assertEqual(
+                what.shape,
+                undone.shape,
+            )
             np.testing.assert_equal(what, undone)
 
     def _dftscore(self, arr):
@@ -47,7 +50,7 @@ class TestUtils(ut.TestCase):
 
         yfreqs = fft.fftfreq(arr.shape[0])[:, np.newaxis]
         xfreqs = fft.fftfreq(arr.shape[1])[np.newaxis, :]
-        weifun = xfreqs ** 2 + yfreqs ** 2
+        weifun = xfreqs**2 + yfreqs**2
 
         ret = np.abs(dft) * weifun
         return ret.sum()
@@ -112,12 +115,12 @@ class TestUtils(ut.TestCase):
         ret = adiff.mean(), adiff.max()
         return ret
 
-    def _wrapFilter(self, src, vecs, * args):
+    def _wrapFilter(self, src, vecs, *args):
         dest = src.copy()
         for vec in vecs:
             self._addFreq(dest, vec)
 
-        filtered = utils.imfilter(dest, * args)
+        filtered = utils.imfilter(dest, *args)
         mold, mnew = [self._arrdiff(src, arr)[0] for arr in (dest, filtered)]
         self.assertGreater(mold * 1e-10, mnew)
 
@@ -131,10 +134,8 @@ class TestUtils(ut.TestCase):
         self._wrapFilter(src2, [(0.8, 0.8), (0.1, 0.2)], (0.8, 1.0), (0.3, 0.4))
 
     def testArgmax_ext(self):
-        src = np.array([[1, 3, 1],
-                        [0, 0, 0],
-                        [1, 3.01, 0]])
-        infres = utils._argmax_ext(src, 'inf')  # element 3.01
+        src = np.array([[1, 3, 1], [0, 0, 0], [1, 3.01, 0]])
+        infres = utils._argmax_ext(src, "inf")  # element 3.01
         self.assertEqual(tuple(infres), (2.0, 1.0))
         n10res = utils._argmax_ext(src, 10)  # element 1 in the rows with 3s
         n10res = np.round(n10res)
@@ -204,11 +205,10 @@ class TestUtils(ut.TestCase):
         for decarr, start in decomps:
             sshp = decarr.shape
             self.assertEqual(tileshp_round, sshp)
-            recon[start[0]:start[0] + sshp[0],
-                  start[1]:start[1] + sshp[1]] = decarr
+            recon[start[0] : start[0] + sshp[0], start[1] : start[1] + sshp[1]] = decarr
         np.testing.assert_array_equal(inarr, recon)
 
-        starts = list(zip(* decomps))[1]
+        starts = list(zip(*decomps))[1]
         dshape = np.array(utils.starts2dshape(starts), int)
         # vvv generic conditions decomp shape has to satisfy vvv
         # np.testing.assert((dshape - 1) * tileshp * coef < smallshp)
@@ -245,7 +245,7 @@ class TestUtils(ut.TestCase):
         second_guess = utils._interpolate(anarr, first_guess, rad=1)
         np.testing.assert_almost_equal(second_guess, (2, 3.5))
 
-    #@ut.skip("Corner case not implemented yet")
+    # @ut.skip("Corner case not implemented yet")
     def test_subpixel_edge(self):
         anarr = np.zeros((4, 5))
         anarr[3, 0] = 1
@@ -282,7 +282,8 @@ class TestTiles(ut.TestCase):
         scales[2] = np.nan
 
         shift, angle, scale, score = utils.get_values(
-            cluster, shifts, scores, angles, scales)
+            cluster, shifts, scores, angles, scales
+        )
 
         np.testing.assert_array_equal(shift, shifts[0])
         self.assertEqual(angle, angles[0])
@@ -290,5 +291,5 @@ class TestTiles(ut.TestCase):
         self.assertEqual(score, scores[0])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ut.main()

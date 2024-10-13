@@ -6,6 +6,7 @@ imreg_dft
 [![CI](https://github.com/jnk22/imreg_dft/actions/workflows/ci.yml/badge.svg)](https://github.com/jnk22/imreg_dft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/jnk22/imreg_dft/graph/badge.svg?token=0K1MYJT3Y5)](https://codecov.io/github/jnk22/imreg_dft)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Documentation Status](https://readthedocs.org/projects/imreg-dft/badge/?version=latest)](https://readthedocs.org/projects/imreg-dft/?badge=latest)
 
 Project status
