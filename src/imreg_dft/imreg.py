@@ -38,7 +38,7 @@ try:
     import pyfftw.interfaces.numpy_fft as fft
 except ImportError:
     from numpy import fft
-import scipy.ndimage.interpolation as ndii
+import scipy.ndimage as ndi
 
 from imreg_dft import utils
 
@@ -567,12 +567,12 @@ def transform_img(
     # TODO: We have problems with complex numbers
     # that are not supported by zoom(), rotate() or shift()
     if scale != 1.0:
-        dest0 = ndii.zoom(dest0, scale, order=order, mode=mode, cval=bgval)
+        dest0 = ndi.zoom(dest0, scale, order=order, mode=mode, cval=bgval)
     if angle != 0.0:
-        dest0 = ndii.rotate(dest0, angle, order=order, mode=mode, cval=bgval)
+        dest0 = ndi.rotate(dest0, angle, order=order, mode=mode, cval=bgval)
 
     if tvec[0] != 0 or tvec[1] != 0:
-        dest0 = ndii.shift(dest0, tvec, order=order, mode=mode, cval=bgval)
+        dest0 = ndi.shift(dest0, tvec, order=order, mode=mode, cval=bgval)
 
     bg = np.zeros_like(img) + bgval
     return utils.embed_to(bg, dest0)
@@ -656,7 +656,7 @@ def _logpolar(image, shape, log_base, bgval=None):
     y = radius_y * np.sin(theta) + center[0]
     x = radius_x * np.cos(theta) + center[1]
     output = np.empty_like(y)
-    ndii.map_coordinates(
+    ndi.map_coordinates(
         image, [y, x], output=output, order=3, mode="constant", cval=bgval
     )
     return output
