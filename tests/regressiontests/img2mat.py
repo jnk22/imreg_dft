@@ -6,10 +6,10 @@ import scipy.misc as misc
 
 def parse():
     parser = ap.ArgumentParser()
-    parser.add_argument('imgfile')
-    parser.add_argument('outfile')
-    parser.add_argument('--var', default="img")
-    parser.add_argument('--dummy-vars', default="", metavar="NAME1,NAME2,...")
+    parser.add_argument("imgfile")
+    parser.add_argument("outfile")
+    parser.add_argument("--var", default="img")
+    parser.add_argument("--dummy-vars", default="", metavar="NAME1,NAME2,...")
     args = parser.parse_args()
     return args
 

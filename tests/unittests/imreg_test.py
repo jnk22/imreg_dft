@@ -24,5 +24,5 @@ class TestImreg(ut.TestCase):
         self.assertEqual(odds, -1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ut.main()

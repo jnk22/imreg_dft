@@ -119,11 +119,14 @@ class ReportsWrapper(object):
         self.prefixes.append(self.idx)
 
     def pop_prefix(self, idx):
-        assert self.prefixes[-1] == idx, \
-            ("Real previous prefix ({}) differs from the specified ({})"
-             .format(self.prefixes[-1], idx))
-        assert len(self.prefixes) > 1, \
-            "There is not more than 1 prefix left, you can't remove any."
+        assert (
+            self.prefixes[-1] == idx
+        ), "Real previous prefix ({}) differs from the specified ({})".format(
+            self.prefixes[-1], idx
+        )
+        assert (
+            len(self.prefixes) > 1
+        ), "There is not more than 1 prefix left, you can't remove any."
         self.prefixes.pop()
         self.idx = self.prefixes[-1]
 
@@ -155,20 +158,26 @@ class Rect_mpl(Rect_callback):
 
     def _call(self, idx, LLC, dims, special=False):
         import matplotlib.pyplot as plt
+
         # Get from the numpy -> MPL coord system
         LLC = LLC[::-1]
         URC = LLC + np.array((dims[1], dims[0]))
-        kwargs = dict(fc='none', lw=4, alpha=0.5)
+        kwargs = dict(fc="none", lw=4, alpha=0.5)
         coords = np.unravel_index(idx, self.shape)
         color = self._get_color(coords, kwargs)
         if special:
-            kwargs["fc"] = 'w'
+            kwargs["fc"] = "w"
         rect = plt.Rectangle(LLC, dims[1], dims[0], **kwargs)
         self.subplot.add_artist(rect)
         center = (URC + LLC) / 2.0
-        self.subplot.text(center[0], center[1],
-                          "%02d\n(%d, %d)" % (idx, coords[0], coords[1]),
-                          va="center", ha="center", color=color)
+        self.subplot.text(
+            center[0],
+            center[1],
+            "%02d\n(%d, %d)" % (idx, coords[0], coords[1]),
+            va="center",
+            ha="center",
+            color=color,
+        )
 
 
 def slices2rects(slices, rect_cb):
@@ -179,7 +188,7 @@ def slices2rects(slices, rect_cb):
     """
     for ii, (sly, slx) in enumerate(slices):
         LLC = np.array((sly.start, slx.start))
-        URC = np.array((sly.stop,  slx.stop))
+        URC = np.array((sly.stop, slx.stop))
         dims = URC - LLC
         rect_cb(ii, LLC, dims)
 
@@ -187,17 +196,24 @@ def slices2rects(slices, rect_cb):
 def imshow_spectra(fig, spectra):
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+
     dfts_filt_extent = (-1, 1, -1, 1)
     grid = axg.ImageGrid(
-        fig, 111, nrows_ncols=(1, 2),
+        fig,
+        111,
+        nrows_ncols=(1, 2),
         add_all=True,
-        axes_pad=0.4, label_mode="L",
+        axes_pad=0.4,
+        label_mode="L",
     )
     what = ("template", "subject")
     for ii, im in enumerate(spectra):
         grid[ii].set_title(_t("log abs dfts - %s" % what[ii]))
-        im = grid[ii].imshow(np.log(np.abs(im)), cmap=plt.cm.viridis,
-                             extent=dfts_filt_extent, )
+        im = grid[ii].imshow(
+            np.log(np.abs(im)),
+            cmap=plt.cm.viridis,
+            extent=dfts_filt_extent,
+        )
         grid[ii].set_xlabel(_t("2 X / px"))
         grid[ii].set_ylabel(_t("2 Y / px"))
     return fig
@@ -206,15 +222,18 @@ def imshow_spectra(fig, spectra):
 def imshow_logpolars(fig, spectra, log_base, im_shape):
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+
     low = 1.0
     high = log_base ** spectra[0].shape[1]
-    logpolars_extent = (low, high,
-                        0, 180)
+    logpolars_extent = (low, high, 0, 180)
     grid = axg.ImageGrid(
-        fig, 111, nrows_ncols=(2, 1),
+        fig,
+        111,
+        nrows_ncols=(2, 1),
         add_all=True,
         aspect=False,
-        axes_pad=0.4, label_mode="L",
+        axes_pad=0.4,
+        label_mode="L",
     )
     ims = [np.log(np.abs(im)) for im in spectra]
     for ii, im in enumerate(ims):
@@ -222,17 +241,23 @@ def imshow_logpolars(fig, spectra, log_base, im_shape):
         vmax = np.percentile(im, 99)
         grid[ii].set_xscale("log", basex=log_base)
         grid[ii].get_xaxis().set_major_formatter(plt.ScalarFormatter())
-        im = grid[ii].imshow(im, cmap=plt.cm.viridis, vmin=vmin, vmax=vmax,
-                             aspect="auto", extent=logpolars_extent)
+        im = grid[ii].imshow(
+            im,
+            cmap=plt.cm.viridis,
+            vmin=vmin,
+            vmax=vmax,
+            aspect="auto",
+            extent=logpolars_extent,
+        )
         grid[ii].set_xlabel(_t("log radius"))
         grid[ii].set_ylabel(_t("azimuth / degrees"))
 
-        xticklabels = ["{:.3g}".format(tick * 2 / im_shape[0])
-                       for tick in grid[ii].get_xticks()]
+        xticklabels = [
+            "{:.3g}".format(tick * 2 / im_shape[0]) for tick in grid[ii].get_xticks()
+        ]
 
         grid[ii].set_xticklabels(
-            xticklabels,
-            rotation=40, rotation_mode="anchor", ha="right"
+            xticklabels, rotation=40, rotation_mode="anchor", ha="right"
         )
 
     return fig
@@ -241,6 +266,7 @@ def imshow_logpolars(fig, spectra, log_base, im_shape):
 def imshow_plain(fig, images, what, also_common=False):
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+
     ncols = len(images)
     nrows = 1
     if also_common:
@@ -250,8 +276,12 @@ def imshow_plain(fig, images, what, also_common=False):
         nrows = ncols = 2
 
     grid = axg.ImageGrid(
-        fig, 111,  nrows_ncols=(nrows, ncols), add_all=True,
-        axes_pad=0.4, label_mode="L",
+        fig,
+        111,
+        nrows_ncols=(nrows, ncols),
+        add_all=True,
+        axes_pad=0.4,
+        label_mode="L",
     )
     images = [im.real for im in images]
 
@@ -259,16 +289,14 @@ def imshow_plain(fig, images, what, also_common=False):
         vmin = np.percentile(im, 2)
         vmax = np.percentile(im, 98)
         grid[ii].set_title(_t(what[ii]))
-        img = grid[ii].imshow(im, cmap=plt.cm.gray,
-                              vmin=vmin, vmax=vmax)
+        img = grid[ii].imshow(im, cmap=plt.cm.gray, vmin=vmin, vmax=vmax)
 
     if also_common:
         vmin = min([np.percentile(im, 2) for im in images])
         vmax = max([np.percentile(im, 98) for im in images])
         for ii, im in enumerate(images):
             grid[ii + ncols].set_title(_t(what[ii]))
-            im = grid[ii + ncols].imshow(im, cmap=plt.cm.viridis,
-                                         vmin=vmin, vmax=vmax)
+            im = grid[ii + ncols].imshow(im, cmap=plt.cm.viridis, vmin=vmin, vmax=vmax)
 
     return fig
 
@@ -276,9 +304,11 @@ def imshow_plain(fig, images, what, also_common=False):
 def imshow_pcorr_translation(fig, cpss, extent, results, successes):
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+
     ncols = 2
     grid = axg.ImageGrid(
-        fig, 111,  # similar to subplot(111)
+        fig,
+        111,  # similar to subplot(111)
         nrows_ncols=(1, ncols),
         add_all=True,
         axes_pad=0.4,
@@ -290,12 +320,14 @@ def imshow_pcorr_translation(fig, cpss, extent, results, successes):
     )
     vmax = max(cpss[0].max(), cpss[1].max())
     imshow_kwargs = dict(
-        vmin=0, vmax=vmax,
+        vmin=0,
+        vmax=vmax,
         aspect="auto",
-        origin="lower", extent=extent,
+        origin="lower",
+        extent=extent,
         cmap=plt.cm.viridis,
     )
-    titles = (_t(u"CPS — translation 0°"), _t(u"CPS — translation 180°"))
+    titles = (_t("CPS — translation 0°"), _t("CPS — translation 180°"))
     labels = (_t("translation y / px"), _t("translation x / px"))
     for idx, pl in enumerate(grid):
         # TODO: Code duplication with imshow_pcorr
@@ -305,14 +337,27 @@ def imshow_pcorr_translation(fig, cpss, extent, results, successes):
 
         # Otherwise plot would change xlim
         pl.autoscale(False)
-        pl.plot(center[0], center[1], "o",
-                color="r", fillstyle="none", markersize=18, lw=8)
-        pl.annotate(_t("succ: {:.3g}".format(successes[idx])), xy=center,
-                    xytext=(0, 9), textcoords='offset points',
-                    color="red", va="bottom", ha="center")
-        pl.annotate(_t("({:.3g}, {:.3g})".format(* center)), xy=center,
-                    xytext=(0, -9), textcoords='offset points',
-                    color="red", va="top", ha="center")
+        pl.plot(
+            center[0], center[1], "o", color="r", fillstyle="none", markersize=18, lw=8
+        )
+        pl.annotate(
+            _t("succ: {:.3g}".format(successes[idx])),
+            xy=center,
+            xytext=(0, 9),
+            textcoords="offset points",
+            color="red",
+            va="bottom",
+            ha="center",
+        )
+        pl.annotate(
+            _t("({:.3g}, {:.3g})".format(*center)),
+            xy=center,
+            xytext=(0, -9),
+            textcoords="offset points",
+            color="red",
+            va="top",
+            ha="center",
+        )
         pl.grid(c="w")
         pl.set_xlabel(labels[1])
 
@@ -322,15 +367,18 @@ def imshow_pcorr_translation(fig, cpss, extent, results, successes):
     return fig
 
 
-def imshow_pcorr(fig, raw, filtered, extent, result, success, log_base=None,
-                 terse=False):
+def imshow_pcorr(
+    fig, raw, filtered, extent, result, success, log_base=None, terse=False
+):
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+
     ncols = 2
     if terse:
         ncols = 1
     grid = axg.ImageGrid(
-        fig, 111,  # similar to subplot(111)
+        fig,
+        111,  # similar to subplot(111)
         nrows_ncols=(1, ncols),
         add_all=True,
         axes_pad=0.4,
@@ -342,30 +390,45 @@ def imshow_pcorr(fig, raw, filtered, extent, result, success, log_base=None,
     )
     vmax = raw.max()
     imshow_kwargs = dict(
-        vmin=0, vmax=vmax,
+        vmin=0,
+        vmax=vmax,
         aspect="auto",
-        origin="lower", extent=extent,
+        origin="lower",
+        extent=extent,
         cmap=plt.cm.viridis,
     )
-    grid[0].set_title(_t(u"CPS"))
+    grid[0].set_title(_t("CPS"))
     labels = (_t("translation y / px"), _t("translation x / px"))
     im = grid[0].imshow(raw, **imshow_kwargs)
 
     center = np.array(result)
     # Otherwise plot would change xlim
     grid[0].autoscale(False)
-    grid[0].plot(center[0], center[1], "o",
-                 color="r", fillstyle="none", markersize=18, lw=8)
-    grid[0].annotate(_t("succ: {:.3g}".format(success)), xy=center,
-                     xytext=(0, 9), textcoords='offset points',
-                     color="red", va="bottom", ha="center")
-    grid[0].annotate(_t("({:.3g}, {:.3g})".format(* center)), xy=center,
-                     xytext=(0, -9), textcoords='offset points',
-                     color="red", va="top", ha="center")
+    grid[0].plot(
+        center[0], center[1], "o", color="r", fillstyle="none", markersize=18, lw=8
+    )
+    grid[0].annotate(
+        _t("succ: {:.3g}".format(success)),
+        xy=center,
+        xytext=(0, 9),
+        textcoords="offset points",
+        color="red",
+        va="bottom",
+        ha="center",
+    )
+    grid[0].annotate(
+        _t("({:.3g}, {:.3g})".format(*center)),
+        xy=center,
+        xytext=(0, -9),
+        textcoords="offset points",
+        color="red",
+        va="top",
+        ha="center",
+    )
     # Show the grid only on the annotated image
     grid[0].grid(c="w")
     if not terse:
-        grid[1].set_title(_t(u"CPS — constrained and filtered"))
+        grid[1].set_title(_t("CPS — constrained and filtered"))
         im = grid[1].imshow(filtered, **imshow_kwargs)
     grid.cbar_axes[0].colorbar(im)
 
@@ -391,6 +454,7 @@ def imshow_pcorr(fig, raw, filtered, extent, result, success, log_base=None,
 
 def imshow_tiles(fig, im0, slices, shape):
     import matplotlib.pyplot as plt
+
     axes = fig.add_subplot(111)
     axes.imshow(im0, cmap=plt.cm.viridis)
     callback = Rect_mpl(axes, shape)
@@ -399,6 +463,7 @@ def imshow_tiles(fig, im0, slices, shape):
 
 def imshow_results(fig, successes, shape, cluster):
     import matplotlib.pyplot as plt
+
     toshow = successes.reshape(shape)
 
     axes = fig.add_subplot(111)
@@ -409,13 +474,19 @@ def imshow_results(fig, successes, shape, cluster):
     axes.set_yticks(np.arange(shape[0]))
 
     coords = np.unravel_index(np.arange(len(successes)), shape)
-    for idx, coord in enumerate(zip(* coords)):
+    for idx, coord in enumerate(zip(*coords)):
         color = "w"
         if cluster[idx]:
             color = "r"
         label = "{:02d}\n({},{})".format(idx, coord[1], coord[0])
-        axes.text(coord[1], coord[0], label,
-                  va="center", ha="center", color=color,)
+        axes.text(
+            coord[1],
+            coord[0],
+            label,
+            va="center",
+            ha="center",
+            color=color,
+        )
 
 
 def mk_factory(prefix, basedim, dpi=150, ftype="png"):
@@ -444,8 +515,7 @@ def report_tile(reports, prefix, multiplier=5.5):
     aspect = reports.get_global("aspect")
     basedim = multiplier * np.array((aspect, 1), float)
     for index, contents in reports.get_contents():
-        fig_factory = mk_factory("{}-{}".format(prefix, index),
-                                 basedim, dpi, ftype)
+        fig_factory = mk_factory("{}-{}".format(prefix, index), basedim, dpi, ftype)
         for key, value in contents.items():
             _report_switch(fig_factory, key, value, reports, contents, terse)
 
@@ -464,36 +534,53 @@ def _report_switch(fig_factory, key, value, reports, contents, terse):
         with fig_factory("sa", 2, 1) as fig:
             center = np.array(contents["amas-result"], float)
             imshow_pcorr(
-                fig, value[:, ::-1], contents["amas-postproc"][:, ::-1],
-                contents["amas-extent"], center,
-                contents["amas-success"], log_base=contents["base"]
+                fig,
+                value[:, ::-1],
+                contents["amas-postproc"][:, ::-1],
+                contents["amas-extent"],
+                center,
+                contents["amas-success"],
+                log_base=contents["base"],
             )
     elif "tiles_successes" in key and reports.show("tile_info"):
         with fig_factory("tile-successes", 1, 1) as fig:
-            imshow_results(fig, value, reports.get_global("tiles-shape"),
-                           reports.get_global("tiles-cluster"))
+            imshow_results(
+                fig,
+                value,
+                reports.get_global("tiles-shape"),
+                reports.get_global("tiles-cluster"),
+            )
     elif "tiles_decomp" in key and reports.show("tile_info"):
         with fig_factory("tile-decomposition", 1, 1) as fig:
-            imshow_tiles(fig, reports.get_global("tiles-whole"),
-                         value, reports.get_global("tiles-shape"))
+            imshow_tiles(
+                fig,
+                reports.get_global("tiles-whole"),
+                value,
+                reports.get_global("tiles-shape"),
+            )
     elif "after_tform" in key and reports.show("transformed"):
         shape = (len(value), 2)
         if terse:
             shape = (2, 2)
-        with fig_factory(key, * shape) as fig:
+        with fig_factory(key, *shape) as fig:
             imshow_plain(
-                fig, value,
-                ("plain", "rotated--scaled",
-                 u"translated — bad rotation", u"translated — good rotation"),
-                not terse)
+                fig,
+                value,
+                (
+                    "plain",
+                    "rotated--scaled",
+                    "translated — bad rotation",
+                    "translated — good rotation",
+                ),
+                not terse,
+            )
     elif "t0-orig" in key and reports.show("translation"):
         t_flip = ("0", "180")
         origs = [contents["t{}-orig".format(idx)] for idx in range(2)]
         tvecs = [contents["t{}-tvec".format(idx)][::-1] for idx in range(2)]
         successes = [contents["t{}-success".format(idx)] for idx in range(2)]
         halves = np.array(origs[0].shape) / 2.0
-        extent = np.array((- halves[1], halves[1],
-                           - halves[0], halves[0]))
+        extent = np.array((-halves[1], halves[1], -halves[0], halves[0]))
 
         if terse:
             with fig_factory("t", 2, 1) as fig:
@@ -506,7 +593,11 @@ def _report_switch(fig_factory, key, value, reports, contents, terse):
                     ncols = 1
                 with fig_factory(basename, ncols, 1) as fig:
                     imshow_pcorr(
-                        fig, origs[idx], contents["t{}-postproc".format(idx)],
-                        extent, tvecs[idx], successes[idx],
-                        terse=terse
+                        fig,
+                        origs[idx],
+                        contents["t{}-postproc".format(idx)],
+                        extent,
+                        tvecs[idx],
+                        successes[idx],
+                        terse=terse,
                     )

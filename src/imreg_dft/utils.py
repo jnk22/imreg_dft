@@ -100,7 +100,7 @@ def _get_constraint_mask(shape, log_base, constraints=None):
         scales = fft.ifftshift(_get_lograd(shape, log_base))
         # vvv This issome kind of transformation of result of _get_lograd
         # vvv (log radius in pixels) to the linear scale.
-        scales *= log_base ** (- shape[1] / 2.0)
+        scales *= log_base ** (-shape[1] / 2.0)
         # This makes the scales array low near where scales is near 'scale'
         scales -= 1.0 / scale
         if sigma == 0:
@@ -112,7 +112,7 @@ def _get_constraint_mask(shape, log_base, constraints=None):
         elif sigma is None:
             pass
         else:
-            mask *= np.exp(-scales ** 2 / sigma ** 2)
+            mask *= np.exp(-(scales**2) / sigma**2)
 
     if "angle" in constraints:
         angle, sigma = constraints["angle"]
@@ -130,7 +130,7 @@ def _get_constraint_mask(shape, log_base, constraints=None):
         elif sigma is None:
             pass
         else:
-            mask *= np.exp(-angles ** 2 / sigma ** 2)
+            mask *= np.exp(-(angles**2) / sigma**2)
 
     mask = fft.fftshift(mask)
     return mask
@@ -183,7 +183,7 @@ def argmax_translation(array, filter_pcorr, constraints=None, reports=None):
             vals = np.zeros(dom.size)
             vals[idx] = 1.0
         else:
-            vals = np.exp(- (dom - pos) ** 2 / sigma ** 2)
+            vals = np.exp(-((dom - pos) ** 2) / sigma**2)
         if dim == 0:
             mask *= vals[:, np.newaxis]
         else:
@@ -197,7 +197,7 @@ def argmax_translation(array, filter_pcorr, constraints=None, reports=None):
     mask2 = get_apofield(ashape, aporad)
     array *= mask2
     # Find what we look for
-    tvec = _argmax_ext(array, 'inf')
+    tvec = _argmax_ext(array, "inf")
     tvec = _interpolate(array_orig, tvec)
 
     # If we use constraints or min filter,
@@ -315,7 +315,7 @@ def _argmax_ext(array, exponent):
         col = np.arange(array.shape[0])[:, np.newaxis]
         row = np.arange(array.shape[1])[np.newaxis, :]
 
-        arr2 = array ** exponent
+        arr2 = array**exponent
         arrsum = arr2.sum()
         if arrsum == 0:
             # We have to return SOMETHING, so let's go for (0, 0)
@@ -394,8 +394,9 @@ def extend_to_3D(what, newdim_2D):
     """
     Extend 2D and 3D arrays (when being supplied with their x--y shape).
     """
-    assert len(newdim_2D) == 2, \
+    assert len(newdim_2D) == 2, (
         "You were supposed to provide 2D dimensions, got %s" % newdim_2D
+    )
     if what.ndim == 3:
         height = what.shape[2]
         res = np.empty(newdim_2D + (height,), what.dtype)
@@ -514,7 +515,7 @@ def imfilter(img, low=None, high=None, cap=None):
 
 def _highpass(dft, lo, hi):
     mask = _xpass((dft.shape), lo, hi)
-    dft *= (1 - mask)
+    dft *= 1 - mask
 
 
 def _lowpass(dft, lo, hi):
@@ -527,17 +528,15 @@ def _xpass(shape, lo, hi):
     Compute a pass-filter mask with values ranging from 0 to 1.0
     The mask is low-pass, application has to be handled by a calling funcion.
     """
-    assert lo <= hi, \
-        "Filter order wrong, low '%g', high '%g'" % (lo, hi)
-    assert lo >= 0, \
-        "Low filter lower than zero (%g)" % lo
+    assert lo <= hi, "Filter order wrong, low '%g', high '%g'" % (lo, hi)
+    assert lo >= 0, "Low filter lower than zero (%g)" % lo
     # High can be as high as possible
 
     dom_x = np.fft.fftfreq(shape[0])[:, np.newaxis]
     dom_y = np.fft.fftfreq(shape[1])[np.newaxis, :]
 
     # freq goes 0..0.5, we want from 0..1, so we multiply it by 2.
-    dom = np.sqrt(dom_x ** 2 + dom_y ** 2) * 2
+    dom = np.sqrt(dom_x**2 + dom_y**2) * 2
 
     res = np.ones(dom.shape)
     res[dom >= hi] = 0.0
@@ -573,7 +572,7 @@ def _apodize(what, aporad=None, ratio=None):
     res = what * apofield
     if ratio is not None:
         ratio = float(ratio)
-        bg = ndi.gaussian_filter(what, aporad / ratio, mode='wrap')
+        bg = ndi.gaussian_filter(what, aporad / ratio, mode="wrap")
     else:
         bg = get_borderval(what, aporad // 2)
     res += bg * (1 - apofield)
@@ -589,8 +588,10 @@ def get_apofield(shape, aporad):
     apos = np.hanning(aporad * 2)
     vecs = []
     for dim in shape:
-        assert dim > aporad * 2, \
-            "Apodization radius %d too big for shape dim. %d" % (aporad, dim)
+        assert dim > aporad * 2, "Apodization radius %d too big for shape dim. %d" % (
+            aporad,
+            dim,
+        )
         toapp = np.ones(dim)
         toapp[:aporad] = apos[:aporad]
         toapp[-aporad:] = apos[-aporad:]
@@ -629,13 +630,13 @@ def frame_img(img, mask, dst, apofield=None):
     krad = krad0
 
     while krad < krad_max:
-        convimg = ndimg.gaussian_filter(convimg0 * convmask0,
-                                        krad, mode='wrap')
-        convmask = ndimg.gaussian_filter(convmask0, krad, mode='wrap')
+        convimg = ndimg.gaussian_filter(convimg0 * convmask0, krad, mode="wrap")
+        convmask = ndimg.gaussian_filter(convmask0, krad, mode="wrap")
         convimg /= convmask
 
-        convimg = (convimg * (convmask - convmask0)
-                   + convimg0 * (1 - convmask + convmask0))
+        convimg = convimg * (convmask - convmask0) + convimg0 * (
+            1 - convmask + convmask0
+        )
         krad *= 1.8
 
         convimg0 = convimg
@@ -741,8 +742,10 @@ def getCuts(shp0, shp1, coef=0.5):
     """
     # * coef = possible increase of density
     offsets = (shp1 * coef).astype(int)
-    starts = [_getCut(shap0, shap1, offset)
-              for shap0, shap1, offset in zip(shp0, shp1, offsets)]
+    starts = [
+        _getCut(shap0, shap1, offset)
+        for shap0, shap1, offset in zip(shp0, shp1, offsets)
+    ]
     assert len(starts) == 2
     res = []
     for start0 in starts[0]:
@@ -788,8 +791,9 @@ def mkCut(shp0, dims, start):
     Returns:
         list - List of slices defining the subarray.
     """
-    assert np.all(shp0 > dims), \
+    assert np.all(shp0 > dims), (
         "The array is too small - shape %s vs shape %s of cuts " % (shp0, dims)
+    )
     # If dims (or even start )are float, the resulting shape may be different
     # due to the rounding stuff.
     start = np.round(start).astype(int)

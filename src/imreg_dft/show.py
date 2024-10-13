@@ -55,24 +55,38 @@ def create_parser():
     parser.add_argument("--prefix", default="reports")
     parser.add_argument("--ftype", choices=("png", "pdf"), default="png")
     parser.add_argument("--dpi", default=150, type=float)
-    parser.add_argument("--terse", default=False, action="store_true",
-                        help="Don't show every smallest thing.")
-    parser.add_argument("--tex", default=False, action="store_true",
-                        help="Use TeX to typeset labels (if applicable).")
-    parser.add_argument("--size", default=5, type=float,
-                        help="Base image element size [in]")
     parser.add_argument(
-        "--display", type=_show_valid, default=TOSHOW_ABBR,
-        help="String composing of '{}', meaning respectively: {}."
-        .format(TOSHOW_ABBR, ", ".join(TOSHOW)))
+        "--terse",
+        default=False,
+        action="store_true",
+        help="Don't show every smallest thing.",
+    )
+    parser.add_argument(
+        "--tex",
+        default=False,
+        action="store_true",
+        help="Use TeX to typeset labels (if applicable).",
+    )
+    parser.add_argument(
+        "--size", default=5, type=float, help="Base image element size [in]"
+    )
+    parser.add_argument(
+        "--display",
+        type=_show_valid,
+        default=TOSHOW_ABBR,
+        help="String composing of '{}', meaning respectively: {}.".format(
+            TOSHOW_ABBR, ", ".join(TOSHOW)
+        ),
+    )
     return parser
 
 
 def _show_valid(stri):
     stripped = stri.rstrip(TOSHOW_ABBR)
     if len(stripped) > 0:
-        raise ap.ArgumentError("Argument contains invalid characters: {}"
-                               .format(stripped))
+        raise ap.ArgumentError(
+            "Argument contains invalid characters: {}".format(stripped)
+        )
     return stri
 
 
@@ -86,6 +100,7 @@ def main():
 
     usetex = args.ftype == "pdf" and args.tex
     from matplotlib import rc
+
     if usetex:
         rc("text", usetex=True)
         rc("text.latex", unicode=True)

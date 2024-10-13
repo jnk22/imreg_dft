@@ -18,5 +18,5 @@ class TestImreg(ut.TestCase):
             self.assertAlmostEqual(res["tvec"][1], 35)  # x-component
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ut.main()

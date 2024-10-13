@@ -40,6 +40,7 @@ from __future__ import division, print_function
 import math
 
 import numpy as np
+
 try:
     import pyfftw.interfaces.numpy_fft as fft
 except ImportError:
@@ -55,11 +56,11 @@ def _logpolar_filter(shape):
     This filter suppresses low frequencies and completely removes
     the zero freq.
     """
-    yy = np.linspace(- np.pi / 2., np.pi / 2., shape[0])[:, np.newaxis]
-    xx = np.linspace(- np.pi / 2., np.pi / 2., shape[1])[np.newaxis, :]
+    yy = np.linspace(-np.pi / 2.0, np.pi / 2.0, shape[0])[:, np.newaxis]
+    xx = np.linspace(-np.pi / 2.0, np.pi / 2.0, shape[1])[np.newaxis, :]
     # Supressing low spatial frequencies is a must when using log-polar
     # transform. The scale stuff is poorly reflected with low freqs.
-    rads = np.sqrt(yy ** 2 + xx ** 2)
+    rads = np.sqrt(yy**2 + xx**2)
     filt = 1.0 - np.cos(rads) ** 2
     # vvv This doesn't really matter, very high freqs are not too usable anyway
     filt[np.abs(rads) > np.pi / 2] = 1
@@ -71,7 +72,7 @@ def _get_pcorr_shape(shape):
     return ret
 
 
-def _get_ang_scale(ims, bgval, exponent='inf', constraints=None, reports=None):
+def _get_ang_scale(ims, bgval, exponent="inf", constraints=None, reports=None):
     """
     Given two images, return their scale and angle difference.
 
@@ -86,8 +87,7 @@ def _get_ang_scale(ims, bgval, exponent='inf', constraints=None, reports=None):
         tuple: Scale, angle. Describes the relationship of
         the subject image to the first one.
     """
-    assert len(ims) == 2, \
-        "Only two images are supported as input"
+    assert len(ims) == 2, "Only two images are supported as input"
     shape = ims[0].shape
 
     ims_apod = [utils._apodize(im) for im in ims]
@@ -100,19 +100,24 @@ def _get_ang_scale(ims, bgval, exponent='inf', constraints=None, reports=None):
 
     pcorr_shape = _get_pcorr_shape(shape)
     log_base = _get_log_base(shape, pcorr_shape[1])
-    stuffs = [_logpolar(np.abs(dft), pcorr_shape, log_base)
-              for dft in dfts]
+    stuffs = [_logpolar(np.abs(dft), pcorr_shape, log_base) for dft in dfts]
 
     (arg_ang, arg_rad), success = _phase_correlation(
-        stuffs[0], stuffs[1],
-        utils.argmax_angscale, log_base, exponent, constraints, reports)
+        stuffs[0],
+        stuffs[1],
+        utils.argmax_angscale,
+        log_base,
+        exponent,
+        constraints,
+        reports,
+    )
 
     angle = -np.pi * arg_ang / float(pcorr_shape[0])
     angle = np.rad2deg(angle)
     angle = utils.wrap_angle(angle, 360)
-    scale = log_base ** arg_rad
+    scale = log_base**arg_rad
 
-    angle = - angle
+    angle = -angle
     scale = 1.0 / scale
 
     if reports is not None:
@@ -122,8 +127,7 @@ def _get_ang_scale(ims, bgval, exponent='inf', constraints=None, reports=None):
         if reports.show("spectra"):
             reports["dfts_filt"] = dfts
         if reports.show("inputs"):
-            reports["ims_filt"] = [fft.ifft2(np.fft.ifftshift(dft))
-                                   for dft in dfts]
+            reports["ims_filt"] = [fft.ifft2(np.fft.ifftshift(dft)) for dft in dfts]
         if reports.show("logpolar"):
             reports["logpolars"] = stuffs
 
@@ -133,20 +137,21 @@ def _get_ang_scale(ims, bgval, exponent='inf', constraints=None, reports=None):
             reports["amas-success"] = success
             extent_el = pcorr_shape[1] / 2.0
             reports["amas-extent"] = (
-                log_base ** (-extent_el), log_base ** extent_el,
-                -90, 90
+                log_base ** (-extent_el),
+                log_base**extent_el,
+                -90,
+                90,
             )
 
     if not 0.5 < scale < 2:
         raise ValueError(
-            "Images are not compatible. Scale change %g too big to be true."
-            % scale)
+            "Images are not compatible. Scale change %g too big to be true." % scale
+        )
 
     return scale, angle
 
 
-def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None,
-                reports=None):
+def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None):
     """
     Return translation vector to register images.
     It tells how to translate the im1 to get im0.
@@ -180,8 +185,9 @@ def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None,
     tvec, succ = _translation(im0, im1, filter_pcorr, constraints, report_one)
     # ... and for the 180-degrees rotated image (the rotation estimation
     # doesn't distinguish rotation of x vs x + 180deg).
-    tvec2, succ2 = _translation(im0, utils.rot180(im1), filter_pcorr,
-                                constraints, report_two)
+    tvec2, succ2 = _translation(
+        im0, utils.rot180(im1), filter_pcorr, constraints, report_two
+    )
 
     pick_rotated = False
     if succ2 * odds > succ or odds == -1:
@@ -236,8 +242,17 @@ def _get_precision(shape, scale=1):
     return Dangle, Dscale
 
 
-def _similarity(im0, im1, numiter=1, order=3, constraints=None,
-                filter_pcorr=0, exponent='inf', bgval=None, reports=None):
+def _similarity(
+    im0,
+    im1,
+    numiter=1,
+    order=3,
+    constraints=None,
+    filter_pcorr=0,
+    exponent="inf",
+    bgval=None,
+    reports=None,
+):
     """
     This function takes some input and returns mutual rotation, scale
     and translation.
@@ -285,8 +300,9 @@ def _similarity(im0, im1, numiter=1, order=3, constraints=None,
         reports["after_tform"] = [im2.copy()]
 
     for ii in range(numiter):
-        newscale, newangle = _get_ang_scale([im0, im2], bgval, exponent,
-                                            constraints_dynamic, reports)
+        newscale, newangle = _get_ang_scale(
+            [im0, im2], bgval, exponent, constraints_dynamic, reports
+        )
         scale *= newscale
         angle += newangle
 
@@ -303,8 +319,7 @@ def _similarity(im0, im1, numiter=1, order=3, constraints=None,
     odds = _get_odds(angle, target, stdev)
 
     # now we can use pcorr to guess the translation
-    res = translation(im0, im2, filter_pcorr, odds,
-                      constraints, reports)
+    res = translation(im0, im2, filter_pcorr, odds, constraints, reports)
 
     # The log-polar transform may have got the angle wrong by 180 degrees.
     # The phase correlation can help us to correct that
@@ -325,8 +340,16 @@ def _similarity(im0, im1, numiter=1, order=3, constraints=None,
     return res
 
 
-def similarity(im0, im1, numiter=1, order=3, constraints=None,
-               filter_pcorr=0, exponent='inf', reports=None):
+def similarity(
+    im0,
+    im1,
+    numiter=1,
+    order=3,
+    constraints=None,
+    filter_pcorr=0,
+    exponent="inf",
+    reports=None,
+):
     """
     Return similarity transformed image im1 and transformation parameters.
     Transformation parameters are: isotropic scale factor, rotation angle (in
@@ -375,8 +398,9 @@ def similarity(im0, im1, numiter=1, order=3, constraints=None,
     """
     bgval = utils.get_borderval(im1, 5)
 
-    res = _similarity(im0, im1, numiter, order, constraints,
-                      filter_pcorr, exponent, bgval, reports)
+    res = _similarity(
+        im0, im1, numiter, order, constraints, filter_pcorr, exponent, bgval, reports
+    )
 
     im2 = transform_img_dict(im1, res, bgval, order)
     # Order of mask should be always 1 - higher values produce strange results.
@@ -409,11 +433,13 @@ def _get_odds(angle, target, stdev):
     """
     ret = 1
     if stdev is not None:
-        diffs = [abs(utils.wrap_angle(ang, 360))
-                 for ang in (target - angle, target - angle + 180)]
+        diffs = [
+            abs(utils.wrap_angle(ang, 360))
+            for ang in (target - angle, target - angle + 180)
+        ]
         odds0, odds1 = 0, 0
         if stdev > 0:
-            odds0, odds1 = [np.exp(- diff ** 2 / stdev ** 2) for diff in diffs]
+            odds0, odds1 = [np.exp(-(diff**2) / stdev**2) for diff in diffs]
         if odds0 == 0 and odds1 > 0:
             # -1 is treated as infinity in _translation
             ret = -1
@@ -433,8 +459,8 @@ def _translation(im0, im1, filter_pcorr=0, constraints=None, reports=None):
     # Apodization and pcorr don't play along
     # im0, im1 = [utils._apodize(im, ratio=1) for im in (im0, im1)]
     ret, succ = _phase_correlation(
-        im0, im1,
-        utils.argmax_translation, filter_pcorr, constraints, reports)
+        im0, im1, utils.argmax_translation, filter_pcorr, constraints, reports
+    )
     return ret, succ
 
 
@@ -505,8 +531,9 @@ def transform_img_dict(img, tdict, bgval=None, order=1, invert=False):
     return res
 
 
-def transform_img(img, scale=1.0, angle=0.0, tvec=(0, 0),
-                  mode="constant", bgval=None, order=1):
+def transform_img(
+    img, scale=1.0, angle=0.0, tvec=(0, 0), mode="constant", bgval=None, order=1
+):
     """
     Return translation vector to register images.
 
@@ -537,8 +564,7 @@ def transform_img(img, scale=1.0, angle=0.0, tvec=(0, 0),
         ret = np.empty_like(img)
         for idx in range(img.shape[2]):
             sli = (slice(None), slice(None), idx)
-            ret[sli] = transform_img(img[sli], scale, angle, tvec,
-                                     mode, bgval, order)
+            ret[sli] = transform_img(img[sli], scale, angle, tvec, mode, bgval, order)
         return ret
     elif np.iscomplexobj(img):
         decomposed = np.empty(img.shape + (2,), float)
@@ -660,8 +686,9 @@ def _logpolar(image, shape, log_base, bgval=None):
     y = radius_y * np.sin(theta) + center[0]
     x = radius_x * np.cos(theta) + center[1]
     output = np.empty_like(y)
-    ndii.map_coordinates(image, [y, x], output=output, order=3,
-                         mode="constant", cval=bgval)
+    ndii.map_coordinates(
+        image, [y, x], output=output, order=3, mode="constant", cval=bgval
+    )
     return output
 
 
@@ -697,7 +724,7 @@ def imshow(im0, im1, im2, cmap=None, fig=None, **kwargs):
     if fig is None:
         fig = pyplot.figure()
     if cmap is None:
-        cmap = 'coolwarm'
+        cmap = "coolwarm"
     # We do the difference between the template and the result now
     # To increase the contrast of the difference, we norm images according
     # to their near-maximums
