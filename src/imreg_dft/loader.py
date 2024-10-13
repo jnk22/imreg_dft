@@ -65,6 +65,16 @@ import sys
 
 
 def _str2nptype(stri):
+    # NumPy types have been removed (e.g., np.float).
+    # To be safe, we still try to use the original method to get
+    # NumPy types (e.g., float --> np.float, int --> np.int, ...),
+    # but if it fails we fall buck to just the input string as type.
+    try:
+        _str2nptype_original(stri)
+    except ValueError:
+        return stri
+
+def _str2nptype_original(stri):
     import numpy as np
     msg = ("The string '%s' is supposed to correspond to a "
            "numpy type" % stri)
