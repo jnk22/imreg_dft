@@ -1,10 +1,12 @@
 import unittest as ut
 
+import pytest
+
 from imreg_dft import reporting
 
 
 class TestReports(ut.TestCase):
-    def testWrapper(self):
+    def testWrapper(self) -> None:
         wrapper = reporting.ReportsWrapper()
         wrapper["one"] = 1
         wrapper.push_prefix("9")
@@ -14,7 +16,7 @@ class TestReports(ut.TestCase):
         wrapper.push_prefix("5-")
         wrapper["three"] = 3
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             wrapper.pop_prefix("1-")
         wrapper.pop_prefix("5-")
 
@@ -22,11 +24,11 @@ class TestReports(ut.TestCase):
         wrapper.pop_prefix("1-")
         wrapper["five"] = 5
 
-        self.assertIn("one", wrapper._stuff[""])
-        self.assertIn("two", wrapper._stuff["1-"])
-        self.assertIn("three", wrapper._stuff["5-"])
-        self.assertIn("four", wrapper._stuff["1-"])
-        self.assertIn("five", wrapper._stuff[""])
+        assert "one" in wrapper._stuff[""]
+        assert "two" in wrapper._stuff["1-"]
+        assert "three" in wrapper._stuff["5-"]
+        assert "four" in wrapper._stuff["1-"]
+        assert "five" in wrapper._stuff[""]
 
 
 if __name__ == "__main__":

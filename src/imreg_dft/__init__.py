@@ -10,7 +10,7 @@ try:
         translation,
     )
 except ImportError as exc:
-    print("Unable to import the main package: %s" % exc)
+    print(f"Unable to import the main package: {exc}")
 
 
 __version__ = "2.0.1a"

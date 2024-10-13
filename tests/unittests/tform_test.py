@@ -4,7 +4,7 @@ from imreg_dft import tform
 
 
 class TestImreg(ut.TestCase):
-    def test_parse(self):
+    def test_parse(self) -> None:
         instrs = [
             "scale: 1.8 +-8.99\n angle:186 \nshift (x, y): 35,44.2 success:1",
             "scale: 1.8 angle:186 \nshift (x, y): 35, 44.2 +-0.5 success:1",

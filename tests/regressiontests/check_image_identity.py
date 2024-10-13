@@ -4,16 +4,16 @@ import sys
 import numpy as np
 from scipy import misc
 
-STR2NORM = dict(
-    max=np.max,
-    mean=np.mean,
-)
+STR2NORM = {
+    "max": np.max,
+    "mean": np.mean,
+}
 
 
 RET2RES = ("same", "different")
 
 
-def main():
+def main() -> None:
     parser = ap.ArgumentParser()
     parser.add_argument("one")
     parser.add_argument("two")

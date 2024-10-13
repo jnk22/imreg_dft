@@ -30,7 +30,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""FFT based image registration. --- main functions"""
+"""FFT based image registration. --- main functions."""
 
 import math
 
@@ -62,8 +62,7 @@ def _logpolar_filter(shape):
 
 
 def _get_pcorr_shape(shape):
-    ret = (int(max(shape) * 1.0),) * 2
-    return ret
+    return (int(max(shape) * 1.0),) * 2
 
 
 def _get_ang_scale(ims, bgval, exponent="inf", constraints=None, reports=None):
@@ -138,9 +137,8 @@ def _get_ang_scale(ims, bgval, exponent="inf", constraints=None, reports=None):
             )
 
     if not 0.5 < scale < 2:
-        raise ValueError(
-            "Images are not compatible. Scale change %g too big to be true." % scale
-        )
+        msg = f"Images are not compatible. Scale change {scale:g} too big to be true."
+        raise ValueError(msg)
 
     return scale, angle
 
@@ -204,7 +202,7 @@ def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None
             transform_img(im1, tvec=tvec, mode="wrap", order=3),
         ]
         if pick_rotated:
-            toapp = toapp[::-1]
+            toapp.reverse()
         reports["after_tform"].extend(toapp)
 
     if pick_rotated:
@@ -212,8 +210,7 @@ def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None
         succ = succ2
         angle += 180
 
-    ret = dict(tvec=tvec, success=succ, angle=angle)
-    return ret
+    return {"tvec": tvec, "success": succ, "angle": angle}
 
 
 def _get_precision(shape, scale=1):
@@ -266,16 +263,18 @@ def _similarity(
 
     shape = im0.shape
     if shape != im1.shape:
-        raise ValueError("Images must have same shapes.")
+        msg = "Images must have same shapes."
+        raise ValueError(msg)
     if im0.ndim != 2:
-        raise ValueError("Images must be 2-dimensional.")
+        msg = "Images must be 2-dimensional."
+        raise ValueError(msg)
 
     # We are going to iterate and precise scale and angle estimates
     scale = 1.0
     angle = 0.0
     im2 = im1
 
-    constraints_default = dict(angle=[0, None], scale=[1, None])
+    constraints_default = {"angle": [0, None], "scale": [1, None]}
     if constraints is None:
         constraints = constraints_default
 
@@ -293,7 +292,7 @@ def _similarity(
     if reports is not None and reports.show("transformed"):
         reports["after_tform"] = [im2.copy()]
 
-    for ii in range(numiter):
+    for _ii in range(numiter):
         newscale, newangle = _get_ang_scale(
             [im0, im2], bgval, exponent, constraints_dynamic, reports
         )
@@ -410,7 +409,7 @@ def similarity(
 
 
 def _get_odds(angle, target, stdev):
-    """Determine whether we are more likely to choose the angle, or angle + 180°
+    """Determine whether we are more likely to choose the angle, or angle + 180°.
 
     Args:
         angle (float, degrees): The base angle.
@@ -457,7 +456,7 @@ def _translation(im0, im1, filter_pcorr=0, constraints=None, reports=None):
 
 
 def _phase_correlation(im0, im1, callback=None, *args):
-    """Computes phase correlation between im0 and im1
+    """Computes phase correlation between im0 and im1.
 
     Args:
         im0
@@ -519,8 +518,7 @@ def transform_img_dict(img, tdict, bgval=None, order=1, invert=False):
         scale = 1.0 / scale
         angle *= -1
         tvec *= -1
-    res = transform_img(img, scale, angle, tvec, bgval=bgval, order=order)
-    return res
+    return transform_img(img, scale, angle, tvec, bgval=bgval, order=order)
 
 
 def transform_img(
@@ -559,13 +557,12 @@ def transform_img(
             ret[sli] = transform_img(img[sli], scale, angle, tvec, mode, bgval, order)
         return ret
     if np.iscomplexobj(img):
-        decomposed = np.empty(img.shape + (2,), float)
+        decomposed = np.empty((*img.shape, 2), float)
         decomposed[:, :, 0] = img.real
         decomposed[:, :, 1] = img.imag
         # The bgval makes little sense now, as we decompose the image
         res = transform_img(decomposed, scale, angle, tvec, mode, None, order)
-        ret = res[:, :, 0] + 1j * res[:, :, 1]
-        return ret
+        return res[:, :, 0] + 1j * res[:, :, 1]
 
     if bgval is None:
         bgval = utils.get_borderval(img)
@@ -585,8 +582,7 @@ def transform_img(
         dest0 = ndii.shift(dest0, tvec, order=order, mode=mode, cval=bgval)
 
     bg = np.zeros_like(img) + bgval
-    dest = utils.embed_to(bg, dest0)
-    return dest
+    return utils.embed_to(bg, dest0)
 
 
 def similarity_matrix(scale, angle, vector):
@@ -598,7 +594,8 @@ def similarity_matrix(scale, angle, vector):
     The order of transformations is: scale, rotate, translate.
 
     """
-    raise NotImplementedError("We have no idea what this is supposed to do")
+    msg = "We have no idea what this is supposed to do"
+    raise NotImplementedError(msg)
     m_scale = np.diag([scale, scale, 1.0])
     m_rot = np.identity(3)
     angle = math.radians(angle)
@@ -616,7 +613,7 @@ EXCESS_CONST = 1.1
 
 def _get_log_base(shape, new_r):
     r"""Basically common functionality of :func:`_logpolar`
-    and :func:`_get_ang_scale`
+    and :func:`_get_ang_scale`.
 
     This value can be considered fixed, if you want to mess with the logpolar
     transform, mess with the shape.
@@ -639,14 +636,13 @@ def _get_log_base(shape, new_r):
     # We are radius, so we divide the diameter by two.
     old_r /= 2.0
     # we have at most 'new_r' of space.
-    log_base = np.exp(np.log(old_r) / new_r)
-    return log_base
+    return np.exp(np.log(old_r) / new_r)
 
 
 def _logpolar(image, shape, log_base, bgval=None):
     """Return log-polar transformed image
     Takes into account anisotropicity of the freq spectrum
-    of rectangular images
+    of rectangular images.
 
     Args:
         image: The image to be transformed
@@ -710,10 +706,10 @@ def imshow(im0, im1, im2, cmap=None, fig=None, **kwargs):
         matplotlib figure: The figure with subplots
 
     """
-    from matplotlib import pyplot
+    from matplotlib import pyplot as plt
 
     if fig is None:
-        fig = pyplot.figure()
+        fig = plt.figure()
     if cmap is None:
         cmap = "coolwarm"
     # We do the difference between the template and the result now
@@ -728,7 +724,7 @@ def imshow(im0, im1, im2, cmap=None, fig=None, **kwargs):
     pl0 = fig.add_subplot(221)
     pl0.imshow(im0.real, cmap, **kwargs)
     pl0.grid()
-    share = dict(sharex=pl0, sharey=pl0)
+    share = {"sharex": pl0, "sharey": pl0}
     pl = fig.add_subplot(222, **share)
     pl.imshow(im1.real, cmap, **kwargs)
     pl.grid()

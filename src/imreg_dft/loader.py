@@ -60,6 +60,7 @@ Rough edges (but not rough enough to be worth the trouble):
 """
 
 import sys
+from typing import NoReturn
 
 
 def _str2nptype(stri):
@@ -76,24 +77,24 @@ def _str2nptype(stri):
 def _str2nptype_original(stri):
     import numpy as np
 
-    msg = "The string '%s' is supposed to correspond to a " "numpy type" % stri
+    msg = f"The string '{stri}' is supposed to correspond to a " "numpy type"
     try:
         typ = getattr(np, stri)
     except Exception as exc:
-        msg += " but it is not the case at all - %s." % str(exc)
+        msg += f" but it is not the case at all - {exc!s}."
         raise ValueError(msg)
     typestr = type(typ).__name__
     # We allow mock object for people who know what they are doing.
     if typestr not in ("type", "Mock"):
-        msg += " but it is a different animal than 'type': '%s'" % typestr
+        msg += f" but it is a different animal than 'type': '{typestr}'"
         raise ValueError(msg)
     return typ
 
 
 def _str2flat(stri):
-    assert stri in "R,G,B,V".split(","), (
-        "Flat value has to be one of R, G, B, V, is '%s' instead" % stri
-    )
+    assert stri in "R,G,B,V".split(
+        ","
+    ), f"Flat value has to be one of R, G, B, V, is '{stri}' instead"
     return stri
 
 
@@ -111,7 +112,7 @@ def flatten(image, char):
     """
     if image.ndim < 3:
         return image
-    char2idx = dict(R=0, G=1, B=2)
+    char2idx = {"R": 0, "G": 1, "B": 2}
     ret = None
     if char == "V":
         ret = image.mean(axis=2)
@@ -119,7 +120,8 @@ def flatten(image, char):
         ret = image[:, :, char2idx[char]]
     else:
         # Shouldn't happen
-        assert False, "Unhandled - invalid flat spec '%s'" % char
+        msg = f"Unhandled - invalid flat spec '{char}'"
+        raise AssertionError(msg)
     return ret
 
 
@@ -128,7 +130,7 @@ class LoaderSet:
     # singleton-like functionality
     _we = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         if LoaderSet._we is not None:
             return
         loaders = [loader() for loader in LoaderSet._LOADERS]
@@ -159,18 +161,17 @@ class LoaderSet:
         if lname is None:
             ret = self._choose_loader(fname)
             if ret is None:
-                msg = "No loader wanted to load '%s' during autodetection" % fname
+                msg = f"No loader wanted to load '{fname}' during autodetection"
                 raise OSError(msg)
         else:
             ret = self._get_loader(lname)
         # Make sure that we don't return the same instance multiple times
-        ret = ret.spawn()
-        return ret
+        return ret.spawn()
 
     def _get_loader(self, lname):
         if lname not in self.loader_dict:
-            msg = "No loader named '%s'." % lname
-            msg += " Choose one of %s." % self.loader_dict.keys()
+            msg = f"No loader named '{lname}'."
+            msg += f" Choose one of {self.loader_dict.keys()}."
             raise KeyError(msg)
         return self.loader_dict(lname)
 
@@ -180,37 +181,29 @@ class LoaderSet:
         return tuple(ret)
 
     @classmethod
-    def add_loader(cls, loader_cls):
-        """Use this method (at early run-time) to register a loader"""
+    def add_loader(cls, loader_cls) -> None:
+        """Use this method (at early run-time) to register a loader."""
         cls._LOADERS.append(loader_cls)
 
-    def print_loader_help(self, lname=None):
+    def print_loader_help(self, lname=None) -> None:
         """Print info about loaders.
         Either print short summary about all loaders, or focus just on one.
         """
         if lname is None:
-            msg = "Available loaders: %s\n" % (self.get_loader_names(),)
+            msg = f"Available loaders: {self.get_loader_names()}\n"
             # Lowest priority first - they are usually the most general ones
             for loader in self.loaders[::-1]:
-                msg += "\n\t%s: %s\n\tAccepts options: %s\n" % (
-                    loader.name,
-                    loader.desc,
-                    tuple(loader.opts.keys()),
-                )
+                msg += f"\n\t{loader.name}: {loader.desc}\n\tAccepts options: {tuple(loader.opts.keys())}\n"
         else:
             loader = self.loader_dict[lname]
-            msg = "Loader '%s':\n" % loader.name
-            msg += "\t%s\n" % loader.desc
+            msg = f"Loader '{loader.name}':\n"
+            msg += f"\t{loader.desc}\n"
             msg += "Accepts options:\n"
             for opt in loader.opts:
-                msg += "\t'%s' (default '%s'): %s\n" % (
-                    opt,
-                    loader.defaults[opt],
-                    loader.opts[opt],
-                )
+                msg += f"\t'{opt}' (default '{loader.defaults[opt]}'): {loader.opts[opt]}\n"
         print(msg)
 
-    def distribute_opts(self, opts):
+    def distribute_opts(self, opts) -> None:
         """Propagate loader options to all loaders."""
         if opts is None:
             # don't return, do something so possible problems surface.
@@ -221,7 +214,7 @@ class LoaderSet:
 
 def loader_of(lname, priority):
     """A decorator interconnecting an abstract loader with the rest of imreg_dft
-    It sets the "nickname" of the loader and its priority during autodetection
+    It sets the "nickname" of the loader and its priority during autodetection.
     """
 
     def wrapped(cls):
@@ -235,7 +228,7 @@ def loader_of(lname, priority):
 
 class Loader:
     """.. automethod:: _save
-    .. automethod:: _load2reg
+    .. automethod:: _load2reg.
     """
 
     name = None
@@ -245,7 +238,7 @@ class Loader:
     defaults = {}
     str2val = {}
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.loaded = None
         self._opts = {}
         # First run, the second will hopefully follow later
@@ -263,15 +256,15 @@ class Loader:
         ret._opts = self._opts
         return ret
 
-    def setOpts(self, options):
+    def setOpts(self, options) -> None:
         for opt in self.opts:
             stri = options.get(opt, self.defaults[opt])
             val = self.str2val.get(opt, lambda x: x)(stri)
             self._opts[opt] = val
 
-    def guessCanLoad(self, fname):
+    def guessCanLoad(self, fname) -> bool:
         """Guess whether we can load a filename just according to the name
-        (extension)
+        (extension).
         """
         return False
 
@@ -282,7 +275,7 @@ class Loader:
         try:
             ret = self._load2reg(fname)
         except OSError as err:
-            print("Couldn't load '%s': %s" % (fname, err.strerror))
+            print(f"Couldn't load '{fname}': {err.strerror}")
             sys.exit(1)
 
         return ret
@@ -293,22 +286,24 @@ class Loader:
         ), "Saving without loading beforehand, which is not supported. "
         return self.loaded
 
-    def _load2reg(self, fname):
+    def _load2reg(self, fname) -> NoReturn:
         """To be implemented by derived class.
         Load data from fname in a way that they can be used in the
         registration process (so it is a 2D array).
         Possibly take into account options passed upon the class creation.
         """
-        raise NotImplementedError("Use the derived class")
+        msg = "Use the derived class"
+        raise NotImplementedError(msg)
 
-    def _save(self, fname, tformed):
+    def _save(self, fname, tformed) -> NoReturn:
         """To be implemented by derived class.
         Save data to fname, possibly taking into account previous loads
         and/or options passed upon the class creation.
         """
-        raise NotImplementedError("Use the derived class")
+        msg = "Use the derived class"
+        raise NotImplementedError(msg)
 
-    def save(self, fname, what, loader):
+    def save(self, fname, what, loader) -> None:
         """Given the registration result, save the transformed input."""
         sopts = loader.saveopts
         self.saveopts.update(sopts)
@@ -330,8 +325,8 @@ class _MatLoader(Loader):
     defaults = {"in": "", "out": "", "type": "float", "flat": "V"}
     str2val = {"type": _str2nptype, "flat": _str2flat}
 
-    def __init__(self):
-        super(_MatLoader, self).__init__()
+    def __init__(self) -> None:
+        super().__init__()
         # By default, we have not loaded anything
         self.saveopts["loaded_all"] = {}
 
@@ -342,28 +337,29 @@ class _MatLoader(Loader):
         if self._opts["in"] == "":
             valid = [key for key in mat if not key.startswith("_")]
             if len(valid) != 1:
-                raise RuntimeError(
+                msg = (
                     "You have to supply an input key, there is an ambiguity "
-                    "of what to load, candidates are: %s" % (tuple(valid),)
+                    f"of what to load, candidates are: {tuple(valid)}"
                 )
+                raise RuntimeError(msg)
             key = valid[0]
         else:
             key = self._opts["in"]
             keys = mat.keys()
             if key not in keys:
-                raise LookupError(
+                msg = (
                     f"You requested load of '{key}', but you can only choose from"
                     f" {tuple(keys)}"
                 )
+                raise LookupError(msg)
         ret = mat[key]
         self.saveopts["loaded_all"] = mat
         self.saveopts["key"] = key
         self.loaded = ret
         # flattening is a no-op on 2D images
-        ret = flatten(ret, self._opts["flat"])
-        return ret
+        return flatten(ret, self._opts["flat"])
 
-    def _save(self, fname, tformed):
+    def _save(self, fname, tformed) -> None:
         from scipy import io
 
         if self._opts["out"] == "":
@@ -388,8 +384,8 @@ class _PILLoader(Loader):
     defaults = {"flat": _MatLoader.defaults["flat"]}
     str2val = {"flat": _MatLoader.str2val["flat"]}
 
-    def __init__(self):
-        super(_PILLoader, self).__init__()
+    def __init__(self) -> None:
+        super().__init__()
 
     def _load2reg(self, fname):
         from scipy import misc
@@ -398,17 +394,16 @@ class _PILLoader(Loader):
         self.loaded = loaded
         ret = loaded
         # flattening is a no-op on 2D images
-        ret = flatten(ret, self._opts["flat"])
-        return ret
+        return flatten(ret, self._opts["flat"])
 
-    def _save(self, fname, tformed):
+    def _save(self, fname, tformed) -> None:
         from scipy import misc
 
         img = misc.toimage(tformed)
         img.save(fname)
 
-    def guessCanLoad(self, fname):
-        """We think that we can do everything"""
+    def guessCanLoad(self, fname) -> bool:
+        """We think that we can do everything."""
         return True
 
 
@@ -421,8 +416,8 @@ class _HDRLoader(Loader):
     opts = {"norm": "Whether to divide the value by 255.0 (0 for not to)"}
     defaults = {"norm": "1"}
 
-    def __init__(self):
-        super(_HDRLoader, self).__init__()
+    def __init__(self) -> None:
+        super().__init__()
 
     def guessCanLoad(self, fname):
         return fname.endswith(".hdr")
@@ -441,7 +436,7 @@ class _HDRLoader(Loader):
             img /= 255.0
         return img
 
-    def _save(self, fname, tformed):
+    def _save(self, fname, tformed) -> None:
         import numpy as np
 
         # Shouldn't happen, just to make sure
@@ -460,9 +455,8 @@ def _parse_opts(stri):
     for comp in components:
         sides = comp.split("=")
         if len(sides) != 2:
-            raise ArgumentTypeError(
-                "The options spec has to look like 'option=value', got %s." % comp
-            )
+            msg = f"The options spec has to look like 'option=value', got {comp}."
+            raise ArgumentTypeError(msg)
         lhs, rhs = sides
         valid_optname = False
         for loader in LOADERS.loaders:
@@ -470,14 +464,13 @@ def _parse_opts(stri):
                 valid_optname = True
                 break
         if not valid_optname:
-            raise ArgumentTypeError(
-                "The option '%s' is not understood by any loader" % lhs
-            )
+            msg = f"The option '{lhs}' is not understood by any loader"
+            raise ArgumentTypeError(msg)
         ret[lhs] = rhs
     return ret
 
 
-def update_parser(parser):
+def update_parser(parser) -> None:
     parser.add_argument(
         "--loader",
         choices=LOADERS.get_loader_names(),

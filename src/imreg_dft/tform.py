@@ -69,7 +69,7 @@ def _str2tform(tstr):
     )
     match = re.search(rexp, tstr, re.MULTILINE)
     assert match is not None, "No match"
-    ret = dict()
+    ret = {}
     parsed = match.groupdict()
     for key, val in parsed.items():
         ret[key] = float(val)
@@ -81,7 +81,7 @@ def str2tform(tstr, invert=False):
     try:
         ret = _str2tform(tstr)
     except Exception:
-        raise ap.ArgumentTypeError()
+        raise ap.ArgumentTypeError
     if invert:
         ret["scale"] = 1.0 / ret["scale"]
         ret["angle"] *= -1
@@ -95,7 +95,7 @@ def args2dict(args):
     """Takes parsed command-line args and makes a dict that contains exact info
     about what needs to be done.
     """
-    ret = dict()
+    ret = {}
     template_shape = None
     _loader = loader.LOADERS.get_loader(args.subject)
     # loader needs to be loaded first
@@ -120,7 +120,7 @@ def args2dict(args):
     return ret
 
 
-def main():
+def main() -> None:
     parser = create_parser()
     args = parser.parse_args()
     loader.settle_loaders(args)

@@ -54,11 +54,10 @@ def resample(img, coef):
 
 
 def filter_images(imgs, low, high, cut):
-    ret = [utils.imfilter(img, low, high, cut) for img in imgs]
-    return ret
+    return [utils.imfilter(img, low, high, cut) for img in imgs]
 
 
-def _distribute_resdict(resdict, ii):
+def _distribute_resdict(resdict, ii) -> None:
     global _SUCCS, _SHIFTS, _ANGLES, _SCALES
 
     try:
@@ -74,13 +73,12 @@ def _distribute_resdict(resdict, ii):
 
 
 def _assemble_resdict(ii):
-    ret = dict(
-        angle=_ANGLES[ii],
-        scale=_SCALES[ii],
-        tvec=_SHIFTS[ii],
-        success=_SUCCS[ii],
-    )
-    return ret
+    return {
+        "angle": _ANGLES[ii],
+        "scale": _SCALES[ii],
+        "tvec": _SHIFTS[ii],
+        "success": _SUCCS[ii],
+    }
 
 
 def _preprocess_extend(ims, extend, low, high, cut, rcoef):
@@ -104,8 +102,7 @@ def _preprocess_extend_single(im, extend, low, high, cut, rcoef, bigshape):
 
     # Make the shape of images the same
     bg = np.zeros(bigshape, dtype=im.dtype) + utils.get_borderval(im, 5)
-    im = utils.embed_to(bg, im)
-    return im
+    return utils.embed_to(bg, im)
 
 
 def _postprocess_unextend(ims, im2, extend, rcoef=1):
@@ -113,8 +110,7 @@ def _postprocess_unextend(ims, im2, extend, rcoef=1):
         ims = [resample(img, 1.0 / rcoef) for img in ims]
         im2 = resample(im2, 1.0 / rcoef)
 
-    ret = [utils.unextend_by(img, extend) for img in ims + [im2]]
-    return ret
+    return [utils.unextend_by(img, extend) for img in [*ims, im2]]
 
 
 def process_images(ims, opts, tosa=None, get_unextended=False, reports=None):
@@ -174,7 +170,7 @@ def process_images(ims, opts, tosa=None, get_unextended=False, reports=None):
     return resdict
 
 
-def process_tile(ii, reports=None):
+def process_tile(ii, reports=None) -> None:
     global _SUCCS, _SHIFTS, _ANGLES, _SCALES, _DIFFS
     tile = _TILES[ii]
     image = _IMAGE
@@ -193,7 +189,7 @@ def process_tile(ii, reports=None):
     except ValueError:
         # probably incompatible images due to high scale change, so we
         # just add some harmless stuff here and proceed.
-        resdict = dict(success=0)
+        resdict = {"success": 0}
     _distribute_resdict(resdict, ii)
     _SUCCS[ii] = resdict["success"]
     if _SUCCS[ii] > 0:
@@ -206,7 +202,7 @@ def process_tile(ii, reports=None):
         # pyl.show()
 
 
-def _fill_globals(tiles, poss, image, opts):
+def _fill_globals(tiles, poss, image, opts) -> None:
     ntiles = len(tiles)
     global _SUCCS, _SHIFTS, _ANGLES, _SCALES, _DIFFS
     global _TILES, _IMAGE, _OPTS, _POSS
@@ -217,7 +213,7 @@ def _fill_globals(tiles, poss, image, opts):
     # Dangle, Dscale, Dt
     _DIFFS = np.empty(3, float) + np.nan
 
-    _TILES = np.empty((ntiles,) + tiles[0].shape)
+    _TILES = np.empty((ntiles, *tiles[0].shape))
     for ii, tile in enumerate(tiles):
         _TILES[ii, :] = tile
 
@@ -236,9 +232,9 @@ def settle_tiles(imgs, tiledim, opts, reports=None):
 
     _fill_globals(tiles, poss, imgs[1], opts)
 
-    for ii, pos in enumerate(poss):
+    for ii, _pos in enumerate(poss):
         process_tile(ii, reports)
-        tile_coord = (ii // ncols, ii % ncols)
+        (ii // ncols, ii % ncols)
 
     """
     if ncores == 0:  # no multiprocessing (to see errors)

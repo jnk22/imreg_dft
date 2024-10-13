@@ -28,6 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import contextlib
+from typing import NoReturn
 
 import numpy as np
 
@@ -39,7 +40,7 @@ TEXT_MODE = "plain"
 
 def _t(stri):
     if TEXT_MODE == "tex":
-        return r"\textrm{%s}" % stri
+        return rf"\textrm{{{stri}}}"
     return stri
 
 
@@ -60,40 +61,38 @@ class ReportsWrapper:
     prefix keys of items set.
     """
 
-    def __init__(self, toshow=""):
+    def __init__(self, toshow="") -> None:
         self.prefixes = [""]
         #: Keys by prefix
-        self._stuff = {"": dict()}
+        self._stuff = {"": {}}
         self.idx = ""
         self._toshow = toshow
-        self._show = dict(
-            inputs="i" in toshow,
-            spectra="s" in toshow,
-            logpolar="l" in toshow,
-            tile_info="t" in toshow,
-            scale_angle="1" in toshow,
-            transformed="a" in toshow,
-            translation="2" in toshow,
-        )
+        self._show = {
+            "inputs": "i" in toshow,
+            "spectra": "s" in toshow,
+            "logpolar": "l" in toshow,
+            "tile_info": "t" in toshow,
+            "scale_angle": "1" in toshow,
+            "transformed": "a" in toshow,
+            "translation": "2" in toshow,
+        }
 
     def get_contents(self):
-        ret = self._stuff.items()
-        return ret
+        return self._stuff.items()
 
     def copy_empty(self):
         ret = ReportsWrapper(self._toshow)
         ret.idx = self.idx
         ret.prefixes = self.prefixes
         for prefix in self.prefixes:
-            ret._stuff[prefix] = dict()
+            ret._stuff[prefix] = {}
         return ret
 
-    def set_global(self, key, value):
+    def set_global(self, key, value) -> None:
         self._stuff[""][key] = value
 
     def get_global(self, key):
-        ret = self._stuff[""][key]
-        return ret
+        return self._stuff[""][key]
 
     def show(self, *args):
         ret = False
@@ -101,19 +100,18 @@ class ReportsWrapper:
             ret |= self._show[arg]
         return ret
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         self._stuff[self.idx][key] = value
 
     def __getitem__(self, key):
-        ret = self._stuff[self.idx][key]
-        return ret
+        return self._stuff[self.idx][key]
 
-    def push_prefix(self, idx):
-        self._stuff.setdefault(idx, dict())
+    def push_prefix(self, idx) -> None:
+        self._stuff.setdefault(idx, {})
         self.idx = idx
         self.prefixes.append(self.idx)
 
-    def pop_prefix(self, idx):
+    def pop_prefix(self, idx) -> None:
         assert (
             self.prefixes[-1] == idx
         ), f"Real previous prefix ({self.prefixes[-1]}) differs from the specified ({idx})"
@@ -128,14 +126,14 @@ class Rect_callback:
     def __call__(self, idx, LLC, dims):
         self._call(idx, LLC, dims)
 
-    def _call(self, idx, LLC, dims):
+    def _call(self, idx, LLC, dims) -> NoReturn:
         raise NotImplementedError
 
 
 class Rect_mpl(Rect_callback):
-    """A class that can draw image tiles nicely"""
+    """A class that can draw image tiles nicely."""
 
-    def __init__(self, subplot, shape):
+    def __init__(self, subplot, shape) -> None:
         self.subplot = subplot
         self.ecs = ("w", "k")
         self.shape = shape
@@ -147,13 +145,13 @@ class Rect_mpl(Rect_callback):
             dic["ec"] = ret
         return ret
 
-    def _call(self, idx, LLC, dims, special=False):
+    def _call(self, idx, LLC, dims, special=False) -> None:
         import matplotlib.pyplot as plt
 
         # Get from the numpy -> MPL coord system
         LLC = LLC[::-1]
         URC = LLC + np.array((dims[1], dims[0]))
-        kwargs = dict(fc="none", lw=4, alpha=0.5)
+        kwargs = {"fc": "none", "lw": 4, "alpha": 0.5}
         coords = np.unravel_index(idx, self.shape)
         color = self._get_color(coords, kwargs)
         if special:
@@ -171,7 +169,7 @@ class Rect_mpl(Rect_callback):
         )
 
 
-def slices2rects(slices, rect_cb):
+def slices2rects(slices, rect_cb) -> None:
     """Args:
     slices: List of slice objects
     rect_cb (callable): Check :class:`Rect_callback`.
@@ -199,7 +197,7 @@ def imshow_spectra(fig, spectra):
     )
     what = ("template", "subject")
     for ii, im in enumerate(spectra):
-        grid[ii].set_title(_t("log abs dfts - %s" % what[ii]))
+        grid[ii].set_title(_t(f"log abs dfts - {what[ii]}"))
         im = grid[ii].imshow(
             np.log(np.abs(im)),
             cmap=plt.cm.viridis,
@@ -280,7 +278,7 @@ def imshow_plain(fig, images, what, also_common=False):
         vmin = np.percentile(im, 2)
         vmax = np.percentile(im, 98)
         grid[ii].set_title(_t(what[ii]))
-        img = grid[ii].imshow(im, cmap=plt.cm.gray, vmin=vmin, vmax=vmax)
+        grid[ii].imshow(im, cmap=plt.cm.gray, vmin=vmin, vmax=vmax)
 
     if also_common:
         vmin = min([np.percentile(im, 2) for im in images])
@@ -310,14 +308,14 @@ def imshow_pcorr_translation(fig, cpss, extent, results, successes):
         cbar_size="3.5%",
     )
     vmax = max(cpss[0].max(), cpss[1].max())
-    imshow_kwargs = dict(
-        vmin=0,
-        vmax=vmax,
-        aspect="auto",
-        origin="lower",
-        extent=extent,
-        cmap=plt.cm.viridis,
-    )
+    imshow_kwargs = {
+        "vmin": 0,
+        "vmax": vmax,
+        "aspect": "auto",
+        "origin": "lower",
+        "extent": extent,
+        "cmap": plt.cm.viridis,
+    }
     titles = (_t("CPS — translation 0°"), _t("CPS — translation 180°"))
     labels = (_t("translation y / px"), _t("translation x / px"))
     for idx, pl in enumerate(grid):
@@ -380,14 +378,14 @@ def imshow_pcorr(
         cbar_size="3.5%",
     )
     vmax = raw.max()
-    imshow_kwargs = dict(
-        vmin=0,
-        vmax=vmax,
-        aspect="auto",
-        origin="lower",
-        extent=extent,
-        cmap=plt.cm.viridis,
-    )
+    imshow_kwargs = {
+        "vmin": 0,
+        "vmax": vmax,
+        "aspect": "auto",
+        "origin": "lower",
+        "extent": extent,
+        "cmap": plt.cm.viridis,
+    }
     grid[0].set_title(_t("CPS"))
     labels = (_t("translation y / px"), _t("translation x / px"))
     im = grid[0].imshow(raw, **imshow_kwargs)
@@ -443,7 +441,7 @@ def imshow_pcorr(
     return fig
 
 
-def imshow_tiles(fig, im0, slices, shape):
+def imshow_tiles(fig, im0, slices, shape) -> None:
     import matplotlib.pyplot as plt
 
     axes = fig.add_subplot(111)
@@ -452,7 +450,7 @@ def imshow_tiles(fig, im0, slices, shape):
     slices2rects(slices, callback)
 
 
-def imshow_results(fig, successes, shape, cluster):
+def imshow_results(fig, successes, shape, cluster) -> None:
     import matplotlib.pyplot as plt
 
     toshow = successes.reshape(shape)
@@ -497,7 +495,7 @@ def mk_factory(prefix, basedim, dpi=150, ftype="png"):
     return _figfun
 
 
-def report_tile(reports, prefix, multiplier=5.5):
+def report_tile(reports, prefix, multiplier=5.5) -> None:
     multiplier = reports.get_global("size")
     dpi = reports.get_global("dpi")
     ftype = reports.get_global("ftype")
@@ -511,7 +509,7 @@ def report_tile(reports, prefix, multiplier=5.5):
             _report_switch(fig_factory, key, value, reports, contents, terse)
 
 
-def _report_switch(fig_factory, key, value, reports, contents, terse):
+def _report_switch(fig_factory, key, value, reports, contents, terse) -> None:
     if "ims_filt" in key and reports.show("inputs"):
         with fig_factory(key, 2, 2) as fig:
             imshow_plain(fig, value, ("template", "subject"), not terse)

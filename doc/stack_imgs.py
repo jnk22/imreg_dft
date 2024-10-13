@@ -1,10 +1,10 @@
 import argparse as ap
 
-import matplotlib
+import matplotlib as mpl
 import scipy as sp
 import scipy.misc
 
-matplotlib.use("Cairo")
+mpl.use("Cairo")
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
@@ -31,11 +31,10 @@ def parse():
         "-d", "--dpi", default=200.0, type=float, help="Resolution of the image"
     )
     parser.add_argument("-o", "--output", default=None, help="Where to save the result")
-    ret = parser.parse_args()
-    return ret
+    return parser.parse_args()
 
 
-def _imshow(pl, what, label, cmap):
+def _imshow(pl, what, label, cmap) -> None:
     pl.grid()
     pl.imshow(what, cmap=cmap)
     pl.tick_params(axis="both", which="major", labelsize=10)
@@ -44,7 +43,7 @@ def _imshow(pl, what, label, cmap):
     pl.add_artist(at)
 
 
-def mkFig(fig, infiles, cmap):
+def mkFig(fig, infiles, cmap) -> None:
     imgs = [sp.misc.imread(fname, True) for fname in infiles]
     ncols = len(imgs)
     pl0 = fig.add_subplot(1, ncols, 1)
@@ -56,9 +55,9 @@ def mkFig(fig, infiles, cmap):
         _imshow(pl, img, _LABELS[ii - 1], cmap)
 
 
-def main():
+def main() -> None:
     args = parse()
-    cmap = getattr(matplotlib.cm, args.colormap)
+    cmap = getattr(mpl.cm, args.colormap)
     fig = plt.Figure(dpi=args.dpi, figsize=args.size)
     mkFig(fig, args.infiles, cmap)
     fig.tight_layout()

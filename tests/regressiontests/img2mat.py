@@ -9,11 +9,10 @@ def parse():
     parser.add_argument("outfile")
     parser.add_argument("--var", default="img")
     parser.add_argument("--dummy-vars", default="", metavar="NAME1,NAME2,...")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse()
     img = misc.imread(args.imgfile)
     tosave = {}
