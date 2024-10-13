@@ -14,17 +14,16 @@ def _slice2arr(sli):
     res.append(sli.start)
     res.append(sli.stop)
     res.append(res[1] - res[0])
-    ret = np.array(res, int)
-    return ret
+    return np.array(res, int)
 
 
 class TestUtils(ut.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         np.random.seed(10)
         self.whatshape = (20, 11)
         self.whatsize = np.prod(self.whatshape)
 
-    def testUndo(self):
+    def testUndo(self) -> None:
         what = np.random.random(self.whatshape)
         wheres = [
             (20, 11),
@@ -36,10 +35,7 @@ class TestUtils(ut.TestCase):
             where = np.zeros(whs)
             embd = utils.embed_to(where, what.copy())
             undone = utils.undo_embed(embd, what.shape)
-            self.assertEqual(
-                what.shape,
-                undone.shape,
-            )
+            assert what.shape == undone.shape
             np.testing.assert_equal(what, undone)
 
     def _dftscore(self, arr):
@@ -54,7 +50,7 @@ class TestUtils(ut.TestCase):
         ret = np.abs(dft) * weifun
         return ret.sum()
 
-    def testExtend(self):
+    def testExtend(self) -> None:
         what = np.random.random((20, 11))
         whaty = what.shape[0]
         what[:] += np.arange(whaty, dtype=float)[:, np.newaxis] * 5 / whaty
@@ -65,16 +61,16 @@ class TestUtils(ut.TestCase):
 
             # Bigger distance should mean better "DFT score"
             dftscore = self._dftscore(ext)
-            self.assertLess(dftscore, dftscore0 * 1.1)
+            assert dftscore < dftscore0 * 1.1
             dftscore0 = dftscore
 
             undone = utils.unextend_by(ext, dst)
-            self.assertEqual(what.shape, undone.shape)
+            assert what.shape == undone.shape
             # TODO: unextend does not work 100% since it is not possible
             # principally
             # np.testing.assert_equal(what, undone)
 
-    def test_subarray(self):
+    def test_subarray(self) -> None:
         arr = np.arange(20)
         arr = arr.reshape((4, 5))
 
@@ -111,19 +107,18 @@ class TestUtils(ut.TestCase):
     @staticmethod
     def _arrdiff(a, b):
         adiff = np.abs(a - b)
-        ret = adiff.mean(), adiff.max()
-        return ret
+        return adiff.mean(), adiff.max()
 
-    def _wrapFilter(self, src, vecs, *args):
+    def _wrapFilter(self, src, vecs, *args) -> None:
         dest = src.copy()
         for vec in vecs:
             self._addFreq(dest, vec)
 
         filtered = utils.imfilter(dest, *args)
         mold, mnew = [self._arrdiff(src, arr)[0] for arr in (dest, filtered)]
-        self.assertGreater(mold * 1e-10, mnew)
+        assert mold * 1e-10 > mnew
 
-    def testFilter(self):
+    def testFilter(self) -> None:
         src = np.zeros((20, 30))
 
         self._wrapFilter(src, [(0.8, 0.8)], (0.8, 1.0))
@@ -132,15 +127,15 @@ class TestUtils(ut.TestCase):
         src2 = self._addFreq(src.copy(), (0.1, 0.4))
         self._wrapFilter(src2, [(0.8, 0.8), (0.1, 0.2)], (0.8, 1.0), (0.3, 0.4))
 
-    def testArgmax_ext(self):
+    def testArgmax_ext(self) -> None:
         src = np.array([[1, 3, 1], [0, 0, 0], [1, 3.01, 0]])
         infres = utils._argmax_ext(src, "inf")  # element 3.01
-        self.assertEqual(tuple(infres), (2.0, 1.0))
+        assert tuple(infres) == (2.0, 1.0)
         n10res = utils._argmax_ext(src, 10)  # element 1 in the rows with 3s
         n10res = np.round(n10res)
-        self.assertEqual(tuple(n10res), (1, 1))
+        assert tuple(n10res) == (1, 1)
 
-    def test_select(self):
+    def test_select(self) -> None:
         inshp = np.array((5, 8))
 
         start = np.array((0, 0))
@@ -161,29 +156,29 @@ class TestUtils(ut.TestCase):
         np.testing.assert_array_equal(sliarrs[:, 0], (3, 5))
         np.testing.assert_array_equal(sliarrs[:, 1], inshp)
 
-    def test_cuts(self):
+    def test_cuts(self) -> None:
         big = np.array((30, 50))
         small = np.array((20, 20))
         res = utils.getCuts(big, small, 0.25)
         # first is (0, 0), second is (0, 1)
-        self.assertEqual(res[1][1], 5)
+        assert res[1][1] == 5
         # Last element of the row has beginning at 40
-        self.assertEqual(res[5][1], 25)
-        self.assertEqual(res[6][1], 30)
-        self.assertEqual(res[7][1], 0)
+        assert res[5][1] == 25
+        assert res[6][1] == 30
+        assert res[7][1] == 0
         # (50 / 5) + 1 = 11th should be (5, 5) - 2nd of the 2nd row
-        self.assertEqual(res[8], (5, 5))
+        assert res[8] == (5, 5)
 
         small = np.array((10, 20))
         res = utils.getCuts(big, small, 1.0)
-        self.assertEqual(res[1], (0, 15))
-        self.assertEqual(res[2], (0, 30))
-        self.assertEqual(res[3], (10, 0))
-        self.assertEqual(res[4], (10, 15))
-        self.assertEqual(res[5], (10, 30))
-        self.assertEqual(res[6], (20, 0))
+        assert res[1] == (0, 15)
+        assert res[2] == (0, 30)
+        assert res[3] == (10, 0)
+        assert res[4] == (10, 15)
+        assert res[5] == (10, 30)
+        assert res[6] == (20, 0)
 
-    def test_cut(self):
+    def test_cut(self) -> None:
         # Tests of those private functions are ugly
         res = utils._getCut(14, 5, 3)
         np.testing.assert_array_equal(res, (0, 3, 6, 9))
@@ -191,7 +186,7 @@ class TestUtils(ut.TestCase):
         res = utils._getCut(130, 50, 50)
         np.testing.assert_array_equal(res, (0, 40, 80))
 
-    def test_decomps(self):
+    def test_decomps(self) -> None:
         smallshp = (30, 50)
         inarr = np.random.random(smallshp)
         recon = np.zeros_like(inarr)
@@ -203,7 +198,7 @@ class TestUtils(ut.TestCase):
         decomps = utils.decompose(inarr, tileshp, coef)
         for decarr, start in decomps:
             sshp = decarr.shape
-            self.assertEqual(tileshp_round, sshp)
+            assert tileshp_round == sshp
             recon[start[0] : start[0] + sshp[0], start[1] : start[1] + sshp[1]] = decarr
         np.testing.assert_array_equal(inarr, recon)
 
@@ -215,7 +210,7 @@ class TestUtils(ut.TestCase):
         np.testing.assert_array_equal(dshape, (6, 10))
 
     @ut.skip("The tested function is deprecated")
-    def test_fftshift(self):
+    def test_fftshift(self) -> None:
         orig_arr = np.arange(12)
         shape = np.array((4, 3))
         orig_arr = orig_arr.reshape(shape)
@@ -226,12 +221,12 @@ class TestUtils(ut.TestCase):
             for xx, val in enumerate(shifted_row):
                 shifted_coord = np.array((yy, xx))
                 # Of course this is equal
-                self.assertEqual(val, shifted_arr[tuple(shifted_coord)])
+                assert val == shifted_arr[tuple(shifted_coord)]
                 fixed_coord = utils._compensate_fftshift(shifted_coord, shape)
                 # The actual test
-                self.assertEqual(val, orig_arr[tuple(fixed_coord)])
+                assert val == orig_arr[tuple(fixed_coord)]
 
-    def test_subpixel(self):
+    def test_subpixel(self) -> None:
         anarr = np.zeros((4, 5))
         anarr[2, 3] = 1
         # The correspondence principle should hold
@@ -245,7 +240,7 @@ class TestUtils(ut.TestCase):
         np.testing.assert_almost_equal(second_guess, (2, 3.5))
 
     # @ut.skip("Corner case not implemented yet")
-    def test_subpixel_edge(self):
+    def test_subpixel_edge(self) -> None:
         anarr = np.zeros((4, 5))
         anarr[3, 0] = 1
         anarr[3, 4] = 1
@@ -258,7 +253,7 @@ class TestUtils(ut.TestCase):
         second_guess = utils._interpolate(anarr, first_guess, rad=2)
         np.testing.assert_almost_equal(second_guess, (3.25, -0.5))
 
-    def test_subpixel_crazy(self):
+    def test_subpixel_crazy(self) -> None:
         anarr = np.zeros((4, 5))
         first_guess = (0, 0)
         second_guess = utils._interpolate(anarr, first_guess, rad=2)
@@ -266,7 +261,7 @@ class TestUtils(ut.TestCase):
 
 
 class TestTiles(ut.TestCase):
-    def testClusters(self):
+    def testClusters(self) -> None:
         shifts = [(0, 1), (0, 1.1), (0.2, 1), (-0.1, 0.9), (-0.1, 0.8)]
         shifts = np.array(shifts)
         clusters = utils.get_clusters(shifts, 0.11)
@@ -285,9 +280,9 @@ class TestTiles(ut.TestCase):
         )
 
         np.testing.assert_array_equal(shift, shifts[0])
-        self.assertEqual(angle, angles[0])
-        self.assertEqual(scale, scales[0])
-        self.assertEqual(score, scores[0])
+        assert angle == angles[0]
+        assert scale == scales[0]
+        assert score == scores[0]
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""FFT based image registration. --- CLI frontend"""
+"""FFT based image registration. --- CLI frontend."""
 
 import argparse as ap
 import sys
@@ -36,15 +36,15 @@ import imreg_dft as ird
 from imreg_dft import loader, tiles, utils
 
 
-def assure_constraint(possible_constraints):
+def assure_constraint(possible_constraints) -> None:
     pass
 
 
 def _constraints(what):
-    BOUNDS = dict(
-        angle=(-180, 180),
-        scale=(0.5, 2.0),
-    )
+    BOUNDS = {
+        "angle": (-180, 180),
+        "scale": (0.5, 2.0),
+    }
 
     def constraint(string):
         components = string.split(",")
@@ -56,16 +56,16 @@ def _constraints(what):
         try:
             mean = float(components[0])
         except Exception:
-            raise ap.ArgumentTypeError(
-                "The %s value must be a float number, got '%s'." % (what, components[0])
-            )
+            msg = f"The {what} value must be a float number, got '{components[0]}'."
+            raise ap.ArgumentTypeError(msg)
         if what in BOUNDS:
             lo, hi = BOUNDS[what]
             if not lo <= mean <= hi:
-                raise ap.ArgumentTypeError(
+                msg = (
                     f"The {what} value must be a number between {lo:g} and {hi:g}, "
                     f"got {mean:g}."
                 )
+                raise ap.ArgumentTypeError(msg)
         std = 0
         if len(components) == 2:
             std = components[1]
@@ -75,12 +75,12 @@ def _constraints(what):
                 try:
                     std = float(std)
                 except Exception:
-                    raise ap.ArgumentTypeError(
-                        "The %s standard deviation spec must be either"
-                        "either a float number or nothing, got '%s'." % (what, std)
+                    msg = (
+                        f"The {what} standard deviation spec must be either"
+                        f"either a float number or nothing, got '{std}'."
                     )
-        ret = (mean, std)
-        return ret
+                    raise ap.ArgumentTypeError(msg)
+        return (mean, std)
 
     return constraint
 
@@ -89,26 +89,25 @@ def _float_tuple(string):
     """Support function for parsing string of two floats delimited by a comma."""
     vals = string.split(",")
     if len(vals) != 2:
-        raise ap.ArgumentTypeError(
-            "'%s' are not two values delimited by comma" % string
-        )
+        msg = f"'{string}' are not two values delimited by comma"
+        raise ap.ArgumentTypeError(msg)
     try:
         vals = [float(val) for val in vals]
     except ValueError:
-        raise ap.ArgumentTypeError("%s are not two float values" % vals)
+        msg = f"{vals} are not two float values"
+        raise ap.ArgumentTypeError(msg)
     return vals
 
 
 def _exponent(string):
-    """Converts the passed string to a float or "inf" """
+    """Converts the passed string to a float or "inf"."""
     if string == "inf":
         return string
     try:
         ret = float(string)
     except:
-        raise ap.ArgumentTypeError(
-            "'%s' should be either 'inf' or a float value" % string
-        )
+        msg = f"'{string}' should be either 'inf' or a float value"
+        raise ap.ArgumentTypeError(msg)
     return ret
 
 
@@ -116,9 +115,16 @@ def outmsg(msg):
     """Support function for checking of validity of the output format string.
     A test interpolation is performed and exceptions handled.
     """
-    fake_data = dict(
-        scale=1.0, angle=2.0, tx=2, ty=2, Dscale=0.1, Dangle=0.2, Dt=0.5, success=0.99
-    )
+    fake_data = {
+        "scale": 1.0,
+        "angle": 2.0,
+        "tx": 2,
+        "ty": 2,
+        "Dscale": 0.1,
+        "Dangle": 0.2,
+        "Dt": 0.5,
+        "success": 0.99,
+    }
     tpl = "The string '%s' is not a good format string"
     try:
         msg % fake_data
@@ -136,7 +142,7 @@ def outmsg(msg):
     return msg
 
 
-def create_base_parser(parser):
+def create_base_parser(parser) -> None:
     parser.add_argument(
         "--extend",
         type=int,
@@ -154,7 +160,7 @@ def create_base_parser(parser):
     )
 
 
-def update_parser_imreg(parser):
+def update_parser_imreg(parser) -> None:
     parser.add_argument("template")
     parser.add_argument("subject")
     parser.add_argument(
@@ -227,7 +233,7 @@ def update_parser_imreg(parser):
     parser.add_argument(
         "--version",
         action="version",
-        version="imreg_dft %s" % ird.__version__,
+        version=f"imreg_dft {ird.__version__}",
         help="Just print version and exit",
     )
     parser.add_argument(
@@ -279,38 +285,37 @@ def args2dict(args):
 
     # We need tuples in the parser and lists further in the code.
     # So we have to do it like this.
-    constraints = dict(
-        angle=list(args.angle),
-        scale=list(args.scale),
-        tx=list(args.tx),
-        ty=list(args.ty),
-    )
+    constraints = {
+        "angle": list(args.angle),
+        "scale": list(args.scale),
+        "tx": list(args.tx),
+        "ty": list(args.ty),
+    }
 
     print_format = args.print_format
     if not args.print_result:
         print_format = None
 
-    opts = dict(
-        order=args.order,
-        filter_pcorr=args.filter_pcorr,
-        extend=args.extend,
-        low=args.lowpass,
-        high=args.highpass,
-        cut=args.cut,
-        print_format=print_format,
-        iters=args.iters,
-        exponent="inf",
-        resample=args.resample,
-        tile=args.tile,
-        constraints=constraints,
-        output=args.output,
-        loaders=loaders,
-        reports=None,
-    )
-    return opts
+    return {
+        "order": args.order,
+        "filter_pcorr": args.filter_pcorr,
+        "extend": args.extend,
+        "low": args.lowpass,
+        "high": args.highpass,
+        "cut": args.cut,
+        "print_format": print_format,
+        "iters": args.iters,
+        "exponent": "inf",
+        "resample": args.resample,
+        "tile": args.tile,
+        "constraints": constraints,
+        "output": args.output,
+        "loaders": loaders,
+        "reports": None,
+    }
 
 
-def main():
+def main() -> None:
     parser = create_parser()
 
     args = parser.parse_args()
@@ -346,7 +351,7 @@ def _get_resdict(imgs, opts, tosa=None):
     return resdict
 
 
-def run(template, subject, opts):
+def run(template, subject, opts) -> None:
     # lazy import so no imports before run() is really called
     from imreg_dft import imreg
 
