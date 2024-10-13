@@ -49,34 +49,6 @@ def wrap_angle(angles, ceil=2 * np.pi):
     return angles
 
 
-def _calc_tform(shape, orig, scale, angle, tvec, newshape=None):
-    """
-    probably not used
-    """
-    assert 0, "We thought that this is not used"
-    offset = np.array(shape) // 2
-    carth = orig - offset
-    polar = np.array((np.sqrt((carth ** 2).sum()),
-                      np.arctan2(carth[0], carth[1])))
-    polar[0] *= scale
-    polar[1] -= np.deg2rad(angle)
-    carth = np.array((polar[0] * np.sin(polar[1]),
-                      polar[0] * np.cos(polar[1])))
-    carth += tvec
-    if newshape is not None:
-        offset = np.array(newshape) // 2
-    ret = carth + offset
-    return ret
-
-
-def _calc_tform_complete(shape, scale, angle, tvec, newshape=None):
-    assert 0, "We thought that this is not used"
-    origs = [(0, 0), (shape[0], 0), shape, (0, shape[1])]
-    ress = [_calc_tform(shape, orig, scale, angle, tvec, newshape)
-            for orig in origs]
-    return ress
-
-
 def rot180(arr):
     """
     Rotate the input array over 180°
@@ -237,26 +209,6 @@ def argmax_translation(array, filter_pcorr, constraints=None, reports=None):
         reports["amt-postproc"] = array.copy()
 
     return tvec, success
-
-
-def _extend_array(arr, point, radius):
-    assert 0, "We thought that this is not used"
-    ret = arr
-    if point[0] - radius < 0:
-        diff = - (point[0] - radius)
-        ret = np.append(arr[-diff - 1: -1], arr)
-        point[0] += diff
-    elif point[0] + radius > arr.shape[0]:
-        diff = point[0] + radius - arr.shape[0]
-        ret = np.append(arr, arr[:diff])
-    return ret, point
-
-
-def _compensate_fftshift(vec, shape):
-    assert 0, "We thought that this is not used"
-    vec -= shape // 2
-    vec %= shape
-    return vec
 
 
 def _get_success(array, coord, radius=2):
