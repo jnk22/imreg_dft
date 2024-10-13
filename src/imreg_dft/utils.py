@@ -742,7 +742,7 @@ def decompose(what, outshp, coef):
     outshp = np.array(outshp)
     shape = np.array(what.shape)
     slices = getSlices(shape, outshp, coef)
-    decomps = [(what[slic], slices2start(slic)) for slic in slices]
+    decomps = [(what[tuple(slic)], slices2start(slic)) for slic in slices]
     return decomps
 
 
