@@ -82,7 +82,7 @@ def _str2nptype_original(stri):
         typ = getattr(np, stri)
     except Exception as exc:
         msg += f" but it is not the case at all - {exc!s}."
-        raise ValueError(msg)
+        raise ValueError(msg) from exc
     typestr = type(typ).__name__
     # We allow mock object for people who know what they are doing.
     if typestr not in ("type", "Mock"):
@@ -147,11 +147,9 @@ class LoaderSet:
             Loader instance or None if no loader can be used.
 
         """
-        for loader in self.loaders:
-            if loader.guessCanLoad(fname):
-                return loader
-        # Ouch, no loader available!
-        return None
+        return next(
+            (loader for loader in self.loaders if loader.guessCanLoad(fname)), None
+        )
 
     def get_loader(self, fname, lname=None):
         """Try to select a loader. Either we know what we want, or an
@@ -427,9 +425,9 @@ class _HDRLoader(Loader):
         import numpy as np
 
         basename = fname.rstrip(".hdr")
-        with open(basename + ".hdr") as fh:
+        with open(f"{basename}.hdr") as fh:
             hdr = fh.readlines()
-        img = np.fromfile(basename + ".img", np.uint8, -1)
+        img = np.fromfile(f"{basename}.img", np.uint8, -1)
         img.shape = int(hdr[4].split()[-1]), int(hdr[3].split()[-1])
         if int(self._opts["norm"]):
             img = img.astype(np.float64)
@@ -458,11 +456,7 @@ def _parse_opts(stri):
             msg = f"The options spec has to look like 'option=value', got {comp}."
             raise ArgumentTypeError(msg)
         lhs, rhs = sides
-        valid_optname = False
-        for loader in LOADERS.loaders:
-            if lhs in loader.opts:
-                valid_optname = True
-                break
+        valid_optname = any(lhs in loader.opts for loader in LOADERS.loaders)
         if not valid_optname:
             msg = f"The option '{lhs}' is not understood by any loader"
             raise ArgumentTypeError(msg)

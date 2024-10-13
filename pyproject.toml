@@ -57,6 +57,7 @@ dev-dependencies = [
   "pytest-xdist==3.6.1",
   "pytest-cov==5.0.0",
   "ruff==0.6.9",
+  "sourcery>=1.23.0",
 ]
 
 [tool.coverage.report]

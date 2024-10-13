@@ -15,11 +15,7 @@ def parse():
 def main() -> None:
     args = parse()
     img = misc.imread(args.imgfile)
-    tosave = {}
-    for dvar in args.dummy_vars.split(","):
-        if len(dvar) == 0:
-            continue
-        tosave[dvar] = 0
+    tosave = {dvar: 0 for dvar in args.dummy_vars.split(",") if len(dvar) != 0}
     tosave[args.var] = img
     io.savemat(args.outfile, tosave)
 

@@ -32,8 +32,6 @@
 
 """FFT based image registration. --- main functions."""
 
-import math
-
 import numpy as np
 
 try:
@@ -181,10 +179,7 @@ def translation(im0, im1, filter_pcorr=0, odds=1, constraints=None, reports=None
         im0, utils.rot180(im1), filter_pcorr, constraints, report_two
     )
 
-    pick_rotated = False
-    if succ2 * odds > succ or odds == -1:
-        pick_rotated = True
-
+    pick_rotated = succ2 * odds > succ or odds == -1
     if reports is not None and reports.show("translation"):
         reports["t0-orig"] = report_one["amt-orig"]
         reports["t0-postproc"] = report_one["amt-postproc"]
@@ -280,7 +275,7 @@ def _similarity(
 
     # We guard against case when caller passes only one constraint key.
     # Now, the provided ones just replace defaults.
-    constraints_default.update(constraints)
+    constraints_default |= constraints
     constraints = constraints_default
 
     # During iterations, we have to work with constraints too.
@@ -437,9 +432,7 @@ def _get_odds(angle, target, stdev):
             # -1 is treated as infinity in _translation
             ret = -1
         elif stdev == 0 or (odds0 == 0 and odds1 == 0):
-            ret = -1
-            if diffs[0] < diffs[1]:
-                ret = 0
+            ret = 0 if diffs[0] < diffs[1] else -1
         else:
             ret = odds1 / odds0
     return ret
@@ -596,16 +589,6 @@ def similarity_matrix(scale, angle, vector):
     """
     msg = "We have no idea what this is supposed to do"
     raise NotImplementedError(msg)
-    m_scale = np.diag([scale, scale, 1.0])
-    m_rot = np.identity(3)
-    angle = math.radians(angle)
-    m_rot[0, 0] = math.cos(angle)
-    m_rot[1, 1] = math.cos(angle)
-    m_rot[0, 1] = -math.sin(angle)
-    m_rot[1, 0] = math.sin(angle)
-    m_transl = np.identity(3)
-    m_transl[:2, 2] = vector
-    return np.dot(m_transl, np.dot(m_rot, m_scale))
 
 
 EXCESS_CONST = 1.1

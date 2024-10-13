@@ -12,3 +12,8 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+  - repo: https://github.com/sourcery-ai/sourcery
+    rev: v1.23.0
+    hooks:
+      - id: sourcery
+        args: [--diff=git diff HEAD, --no-summary]

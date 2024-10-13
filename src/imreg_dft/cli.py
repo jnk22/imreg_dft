@@ -93,9 +93,9 @@ def _float_tuple(string):
         raise ap.ArgumentTypeError(msg)
     try:
         vals = [float(val) for val in vals]
-    except ValueError:
+    except ValueError as e:
         msg = f"{vals} are not two float values"
-        raise ap.ArgumentTypeError(msg)
+        raise ap.ArgumentTypeError(msg) from e
     return vals
 
 
@@ -115,6 +115,7 @@ def outmsg(msg):
     """Support function for checking of validity of the output format string.
     A test interpolation is performed and exceptions handled.
     """
+    tpl = "The string '%s' is not a good format string"
     fake_data = {
         "scale": 1.0,
         "angle": 2.0,
@@ -125,20 +126,15 @@ def outmsg(msg):
         "Dt": 0.5,
         "success": 0.99,
     }
-    tpl = "The string '%s' is not a good format string"
     try:
         msg % fake_data
     except KeyError as exc:
         raise ap.ArgumentTypeError(
-            (
-                tpl + ". The correct string "
-                "has to contain at most %s, but this one also contains an invalid"
-                " value '%s'."
-            )
+            f"{tpl}. The correct string has to contain at most %s, but this one also contains an invalid value '%s'."
             % (msg, fake_data.keys(), exc.args[0])
-        )
+        ) from exc
     except Exception as exc:
-        raise ap.ArgumentTypeError((tpl + " - %s") % (msg, str(exc)))
+        raise ap.ArgumentTypeError(f"{tpl} - %s" % (msg, str(exc))) from exc
     return msg
 
 
@@ -292,10 +288,7 @@ def args2dict(args):
         "ty": list(args.ty),
     }
 
-    print_format = args.print_format
-    if not args.print_result:
-        print_format = None
-
+    print_format = args.print_format if args.print_result else None
     return {
         "order": args.order,
         "filter_pcorr": args.filter_pcorr,

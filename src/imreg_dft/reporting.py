@@ -39,9 +39,7 @@ TEXT_MODE = "plain"
 
 
 def _t(stri):
-    if TEXT_MODE == "tex":
-        return rf"\textrm{{{stri}}}"
-    return stri
+    return f"\textrm{{{stri}}}" if TEXT_MODE == "tex" else stri
 
 
 @contextlib.contextmanager
@@ -281,8 +279,8 @@ def imshow_plain(fig, images, what, also_common=False):
         grid[ii].imshow(im, cmap=plt.cm.gray, vmin=vmin, vmax=vmax)
 
     if also_common:
-        vmin = min([np.percentile(im, 2) for im in images])
-        vmax = max([np.percentile(im, 98) for im in images])
+        vmin = min(np.percentile(im, 2) for im in images)
+        vmax = max(np.percentile(im, 98) for im in images)
         for ii, im in enumerate(images):
             grid[ii + ncols].set_title(_t(what[ii]))
             im = grid[ii + ncols].imshow(im, cmap=plt.cm.viridis, vmin=vmin, vmax=vmax)
@@ -362,9 +360,7 @@ def imshow_pcorr(
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
-    ncols = 2
-    if terse:
-        ncols = 1
+    ncols = 1 if terse else 2
     grid = axg.ImageGrid(
         fig,
         111,  # similar to subplot(111)
@@ -564,7 +560,6 @@ def _report_switch(fig_factory, key, value, reports, contents, terse) -> None:
                 not terse,
             )
     elif "t0-orig" in key and reports.show("translation"):
-        t_flip = ("0", "180")
         origs = [contents[f"t{idx}-orig"] for idx in range(2)]
         tvecs = [contents[f"t{idx}-tvec"][::-1] for idx in range(2)]
         successes = [contents[f"t{idx}-success"] for idx in range(2)]
@@ -575,6 +570,7 @@ def _report_switch(fig_factory, key, value, reports, contents, terse) -> None:
             with fig_factory("t", 2, 1) as fig:
                 imshow_pcorr_translation(fig, origs, extent, tvecs, successes)
         else:
+            t_flip = ("0", "180")
             for idx in range(2):
                 basename = f"t_{t_flip[idx]}"
                 ncols = 2
