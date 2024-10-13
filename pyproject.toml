@@ -56,3 +56,6 @@ dev-dependencies = [
   "pytest-xdist==3.6.1",
   "pytest-cov==5.0.0",
 ]
+
+[tool.coverage.report]
+exclude_lines = ["if (typing\\.)?TYPE_CHECKING:"]
