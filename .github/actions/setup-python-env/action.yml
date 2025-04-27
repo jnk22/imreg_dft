@@ -20,9 +20,10 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Install uv
-      uses: astral-sh/setup-uv@f94ec6bedd8674c4426838e6b50417d36b6ab231 # v5.3.1
+      uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
       with:
         version: ${{ inputs.uv-version }}
+        activate-environment: true
 
     - name: Install Python dependencies
       run: uv sync --frozen --no-dev --group test
