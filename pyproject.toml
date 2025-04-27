@@ -54,16 +54,53 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv]
-dev-dependencies = [
-  "pytest==8.3.3",
+managed = true
+default-groups = ["dev", "test"]
+
+[dependency-groups]
+dev = []
+test = [
+  "pytest==8.3.5",
+  "pytest-cov==6.1.1",
   "pytest-xdist==3.6.1",
-  "pytest-cov==5.0.0",
+  "tox-uv==1.25.0",
+]
+lint = [
   "ruff==0.6.9",
   "sourcery>=1.23.0",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov-config=pyproject.toml --doctest-modules --strict-markers"
+
 [tool.coverage.report]
 exclude_lines = ["if (typing\\.)?TYPE_CHECKING:"]
+
+[tool.coverage.run]
+branch = true
+source = ["imreg_dft"]
+
+[tool.tox]
+skipsdist = true
+env_list = ["3.10", "3.11", "3.12", "3.13"]
+
+[tool.tox.env_run_base]
+passenv = ["PYTHON_VERSION"]
+allowlist_externals = ["uv"]
+commands = [
+  [
+    "uv",
+    "run",
+    "--no-dev",
+    "--group",
+    "test",
+    "--python",
+    "{envpython}",
+    "pytest",
+    "--doctest-modules",
+  ],
+]
 
 [tool.ruff]
 target-version = "py310"
