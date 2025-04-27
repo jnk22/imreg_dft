@@ -386,19 +386,21 @@ class _PILLoader(Loader):
         super().__init__()
 
     def _load2reg(self, fname):
-        from scipy import misc
+        import imageio.v3 as iio
 
-        loaded = misc.imread(fname)
+        # We use pilmode="RGBA" as the default behavior would only load
+        # some regression test images as RGB.
+        # TODO: Verify that this works for non-RGBA images.
+        loaded = iio.imread(fname, pilmode="RGBA")
         self.loaded = loaded
         ret = loaded
         # flattening is a no-op on 2D images
         return flatten(ret, self._opts["flat"])
 
     def _save(self, fname, tformed) -> None:
-        from scipy import misc
+        import imageio.v3 as iio
 
-        img = misc.toimage(tformed)
-        img.save(fname)
+        iio.imwrite(fname, tformed)
 
     def guessCanLoad(self, fname) -> bool:
         """We think that we can do everything."""

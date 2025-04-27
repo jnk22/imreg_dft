@@ -1,8 +1,7 @@
 import argparse as ap
 
+import imageio.v3 as iio
 import matplotlib as mpl
-import scipy as sp
-import scipy.misc
 
 mpl.use("Cairo")
 
@@ -44,7 +43,7 @@ def _imshow(pl, what, label, cmap) -> None:
 
 
 def mkFig(fig, infiles, cmap) -> None:
-    imgs = [sp.misc.imread(fname, True) for fname in infiles]
+    imgs = [iio.imread(fname) for fname in infiles]
     ncols = len(imgs)
     pl0 = fig.add_subplot(1, ncols, 1)
     _imshow(pl0, imgs[0], _LABELS[0], cmap)

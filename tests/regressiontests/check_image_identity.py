@@ -1,8 +1,8 @@
 import argparse as ap
 import sys
 
+import imageio.v3 as iio
 import numpy as np
-from scipy import misc
 
 STR2NORM = {
     "max": np.max,
@@ -23,10 +23,7 @@ def main() -> None:
     parser.add_argument("--norm", choices=("max", "mean"), default="max")
     args = parser.parse_args()
 
-    imgs = [
-        misc.imread(fname, args.grayscale).astype(float)
-        for fname in (args.one, args.two)
-    ]
+    imgs = [iio.imread(fname).astype(float) for fname in (args.one, args.two)]
     diff = np.abs(imgs[1] - imgs[0])
     mean = np.abs(imgs[0] + imgs[1]) / 2.0
     if not args.grayscale:
