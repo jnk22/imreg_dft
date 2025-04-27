@@ -1,5 +1,7 @@
 """Reporting tests."""
 
+from __future__ import annotations
+
 import pytest
 
 from imreg_dft import reporting

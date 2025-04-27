@@ -1,16 +1,22 @@
+from __future__ import annotations
+
 import argparse as ap
 import sys
+from typing import TYPE_CHECKING, Final
 
 import imageio.v3 as iio
 import numpy as np
 
-STR2NORM = {
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+STR2NORM: Final[dict[str, Callable]] = {
     "max": np.max,
     "mean": np.mean,
 }
 
 
-RET2RES = ("same", "different")
+RET2RES: Final = ("same", "different")
 
 
 def main() -> None:

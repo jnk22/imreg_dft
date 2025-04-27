@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse as ap
 
 import imageio.v3 as iio

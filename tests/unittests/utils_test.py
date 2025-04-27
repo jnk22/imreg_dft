@@ -38,7 +38,7 @@ def size_setup() -> tuple[tuple[int, int], int64]:
 @pytest.mark.parametrize("whs", [(20, 11), (21, 12), (22, 13), (50, 60)])
 def test_undo(
     whs: tuple[int, int], size_setup: tuple[tuple[int, int], int64], rng: Generator
-):
+) -> None:
     whatshape, _ = size_setup
     what = rng.random(whatshape)
 

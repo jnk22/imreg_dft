@@ -1,12 +1,14 @@
 """Image registration tests."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 from imreg_dft import imreg
 
 
-def test_odds():
+def test_odds() -> None:
     # low or almost-zero odds
     odds = imreg._get_odds(10, 20, 0)
     assert odds == pytest.approx(0)
