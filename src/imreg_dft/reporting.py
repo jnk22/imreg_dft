@@ -213,7 +213,7 @@ def imshow_spectra(fig: Figure, spectra: list[NDArray]) -> Figure:
         grid[ii].set_title(_t(f"log abs dfts - {what[ii]}"))
         im = grid[ii].imshow(
             np.log(np.abs(im)),
-            cmap=plt.cm.viridis,
+            cmap="viridis",
             extent=dfts_filt_extent,
         )
         grid[ii].set_xlabel(_t("2 X / px"))
@@ -247,7 +247,7 @@ def imshow_logpolars(
         grid[ii].get_xaxis().set_major_formatter(plt.ScalarFormatter())
         im = grid[ii].imshow(
             im,
-            cmap=plt.cm.viridis,
+            cmap="viridis",
             vmin=vmin,
             vmax=vmax,
             aspect="auto",
@@ -295,14 +295,14 @@ def imshow_plain(
         vmin = np.percentile(im, 2)
         vmax = np.percentile(im, 98)
         grid[ii].set_title(_t(what[ii]))
-        grid[ii].imshow(im, cmap=plt.cm.gray, vmin=vmin, vmax=vmax)
+        grid[ii].imshow(im, cmap="gray", vmin=vmin, vmax=vmax)
 
     if also_common:
         vmin = min(np.percentile(im, 2) for im in images)
         vmax = max(np.percentile(im, 98) for im in images)
         for ii, im in enumerate(images):
             grid[ii + ncols].set_title(_t(what[ii]))
-            im = grid[ii + ncols].imshow(im, cmap=plt.cm.viridis, vmin=vmin, vmax=vmax)
+            im = grid[ii + ncols].imshow(im, cmap="viridis", vmin=vmin, vmax=vmax)
 
     return fig
 
@@ -337,7 +337,7 @@ def imshow_pcorr_translation(
         "aspect": "auto",
         "origin": "lower",
         "extent": extent,
-        "cmap": plt.cm.viridis,
+        "cmap": "viridis",
     }
     titles = (_t("CPS — translation 0°"), _t("CPS — translation 180°"))
     labels = (_t("translation y / px"), _t("translation x / px"))
@@ -412,7 +412,7 @@ def imshow_pcorr(
         "aspect": "auto",
         "origin": "lower",
         "extent": extent,
-        "cmap": plt.cm.viridis,
+        "cmap": "viridis",
     }
     grid[0].set_title(_t("CPS"))
     labels = (_t("translation y / px"), _t("translation x / px"))
@@ -475,7 +475,7 @@ def imshow_tiles(
     import matplotlib.pyplot as plt
 
     axes = fig.add_subplot(111)
-    axes.imshow(im0, cmap=plt.cm.viridis)
+    axes.imshow(im0, cmap="viridis")
     callback = Rect_mpl(axes, shape)
     slices2rects(slices, callback)
 
@@ -488,7 +488,7 @@ def imshow_results(
     toshow = successes.reshape(shape)
 
     axes = fig.add_subplot(111)
-    img = axes.imshow(toshow, cmap=plt.cm.viridis, interpolation="none")
+    img = axes.imshow(toshow, cmap="viridis", interpolation="none")
     fig.colorbar(img)
 
     axes.set_xticks(np.arange(shape[1]))
