@@ -80,7 +80,7 @@ def _str2nptype(stri):
 def _str2nptype_original(stri):
     import numpy as np
 
-    msg = f"The string '{stri}' is supposed to correspond to a " "numpy type"
+    msg = f"The string '{stri}' is supposed to correspond to a numpy type"
     try:
         typ = getattr(np, stri)
     except Exception as exc:
@@ -95,9 +95,9 @@ def _str2nptype_original(stri):
 
 
 def _str2flat(stri):
-    assert (
-        stri in VALID_FLAT_VALUES
-    ), f"Flat value has to be one of R, G, B, V, is '{stri}' instead"
+    assert stri in VALID_FLAT_VALUES, (
+        f"Flat value has to be one of R, G, B, V, is '{stri}' instead"
+    )
     return stri
 
 
@@ -282,9 +282,9 @@ class Loader:
         return ret
 
     def get2save(self):
-        assert (
-            self.loaded is not None
-        ), "Saving without loading beforehand, which is not supported. "
+        assert self.loaded is not None, (
+            "Saving without loading beforehand, which is not supported. "
+        )
         return self.loaded
 
     def _load2reg(self, fname) -> NoReturn:
@@ -316,9 +316,8 @@ class _MatLoader(Loader):
     desc = "Loader of .mat (MATLAB v5) binary files"
     opts = {
         "in": "The structure to load (empty => autodetect)",
-        "out": "The structure to save the result to (empty => the same " "as the 'in'",
-        "type": "Name of the numpy data type for the output (such as "
-        "int, uint8 etc.)",
+        "out": "The structure to save the result to (empty => the same as the 'in'",
+        "type": "Name of the numpy data type for the output (such as int, uint8 etc.)",
         "flat": "How to flatten (the possibly RGB image) for the "
         "registration. Values can be R, G, B or V (V for value - "
         "a number proportional to average of R, G and B)",
@@ -364,9 +363,9 @@ class _MatLoader(Loader):
         from scipy import io
 
         if self._opts["out"] == "":
-            assert (
-                "key" in self.saveopts
-            ), "Don't know how to save the output - what .mat struct?"
+            assert "key" in self.saveopts, (
+                "Don't know how to save the output - what .mat struct?"
+            )
             key = self.saveopts["key"]
         else:
             key = self._opts["out"]
@@ -489,7 +488,7 @@ def update_parser(parser) -> None:
         "--help-loader",
         default=False,
         action="store_true",
-        help="Get help on all loaders or on the current loader " "and its options.",
+        help="Get help on all loaders or on the current loader and its options.",
     )
 
 

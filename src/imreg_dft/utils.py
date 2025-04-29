@@ -368,9 +368,9 @@ def embed_to(where, what):
 
 def extend_to_3D(what, newdim_2D):
     """Extend 2D and 3D arrays (when being supplied with their x--y shape)."""
-    assert (
-        len(newdim_2D) == 2
-    ), f"You were supposed to provide 2D dimensions, got {newdim_2D}"
+    assert len(newdim_2D) == 2, (
+        f"You were supposed to provide 2D dimensions, got {newdim_2D}"
+    )
     if what.ndim == 3:
         height = what.shape[2]
         res = np.empty((*newdim_2D, height), what.dtype)
@@ -735,9 +735,9 @@ def mkCut(shp0, dims, start):
         list - List of slices defining the subarray.
 
     """
-    assert np.all(
-        shp0 > dims
-    ), f"The array is too small - shape {shp0} vs shape {dims} of cuts "
+    assert np.all(shp0 > dims), (
+        f"The array is too small - shape {shp0} vs shape {dims} of cuts "
+    )
     # If dims (or even start )are float, the resulting shape may be different
     # due to the rounding stuff.
     start = np.round(start).astype(int)

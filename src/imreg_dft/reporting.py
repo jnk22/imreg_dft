@@ -110,12 +110,12 @@ class ReportsWrapper:
         self.prefixes.append(self.idx)
 
     def pop_prefix(self, idx) -> None:
-        assert (
-            self.prefixes[-1] == idx
-        ), f"Real previous prefix ({self.prefixes[-1]}) differs from the specified ({idx})"
-        assert (
-            len(self.prefixes) > 1
-        ), "There is not more than 1 prefix left, you can't remove any."
+        assert self.prefixes[-1] == idx, (
+            f"Real previous prefix ({self.prefixes[-1]}) differs from the specified ({idx})"
+        )
+        assert len(self.prefixes) > 1, (
+            "There is not more than 1 prefix left, you can't remove any."
+        )
         self.prefixes.pop()
         self.idx = self.prefixes[-1]
 

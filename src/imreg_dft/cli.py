@@ -191,7 +191,7 @@ def update_parser_imreg(parser) -> None:
         "--iters",
         type=int,
         default=1,
-        help="How many iterations to guess the right scale " "and angle",
+        help="How many iterations to guess the right scale and angle",
     )
     create_base_parser(parser)
     parser.add_argument(

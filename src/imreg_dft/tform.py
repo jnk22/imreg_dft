@@ -105,9 +105,9 @@ def args2dict(args):
         template_shape = [int(x) for x in args.template_shape.split(",")]
     else:
         template_shape = ret["subject"].shape[:2]
-    assert (
-        template_shape is not None
-    ), "Template shape should have been determined by now, wtf that it wasn't"
+    assert template_shape is not None, (
+        "Template shape should have been determined by now, wtf that it wasn't"
+    )
     ret["loader"] = _loader
     ret["shape"] = template_shape
     tstring = args.transformation
