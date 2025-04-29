@@ -150,7 +150,7 @@ def process_images(
     reports: reporting.ReportsWrapper | None = None,
 ) -> dict[str, Any]:
     """Args:
-    tosa (np.ndarray): An array where to save the transformed subject.
+    tosa (np.NDArray): An array where to save the transformed subject.
     get_unextended (bool): Whether to get the transformed subject
         in the same shape and coord origin as the template.
 
