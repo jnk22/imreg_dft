@@ -27,23 +27,30 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
 
 import imreg_dft as ird
 from imreg_dft import reporting, utils
 
-_TILES = None
-_SUCCS = None
-_SHIFTS = None
-_ANGLES = None
-_SCALES = None
-_DIFFS = None
-_IMAGE = None
-_OPTS = None
-_POSS = None
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+_TILES: Any | None = None
+_SUCCS: Any | None = None
+_SHIFTS: Any | None = None
+_ANGLES: Any | None = None
+_SCALES: Any | None = None
+_DIFFS: Any | None = None
+_IMAGE: Any | None = None
+_OPTS: Any | None = None
+_POSS: Any | None = None
 
 
-def resample(img, coef):
+def resample(img: NDArray, coef: float) -> NDArray:
     from scipy import signal
 
     ret = img
@@ -53,11 +60,16 @@ def resample(img, coef):
     return ret
 
 
-def filter_images(imgs, low, high, cut):
+def filter_images(
+    imgs: NDArray,
+    low: tuple[float, float],
+    high: tuple[float, float],
+    cut: tuple[float, float],
+) -> list[NDArray]:
     return [utils.imfilter(img, low, high, cut) for img in imgs]
 
 
-def _distribute_resdict(resdict, ii) -> None:
+def _distribute_resdict(resdict: dict[str, Any], ii: int) -> None:
     global _SUCCS, _SHIFTS, _ANGLES, _SCALES
 
     try:
@@ -72,7 +84,7 @@ def _distribute_resdict(resdict, ii) -> None:
         _SUCCS[ii] = 0
 
 
-def _assemble_resdict(ii):
+def _assemble_resdict(ii: int) -> dict[str, Any]:
     return {
         "angle": _ANGLES[ii],
         "scale": _SCALES[ii],
@@ -81,7 +93,14 @@ def _assemble_resdict(ii):
     }
 
 
-def _preprocess_extend(ims, extend, low, high, cut, rcoef):
+def _preprocess_extend(
+    ims: list[NDArray],
+    extend: int,
+    low: tuple[float, float],
+    high: tuple[float, float],
+    cut: tuple[float, float],
+    rcoef: float,
+) -> list[NDArray]:
     bigshape = np.array([img.shape for img in ims]).max(0) + 2 * extend
     bigshape = (bigshape * rcoef).astype(int)
     ims = [
@@ -94,7 +113,15 @@ def _preprocess_extend(ims, extend, low, high, cut, rcoef):
     return ims
 
 
-def _preprocess_extend_single(im, extend, low, high, cut, rcoef, bigshape):
+def _preprocess_extend_single(
+    im: NDArray,
+    extend: int,
+    low: tuple[float, float],
+    high: tuple[float, float],
+    cut: tuple[float, float],
+    rcoef: float,
+    bigshape: tuple[int, ...],
+) -> NDArray:
     im = utils.extend_by(im, extend)
     im = utils.imfilter(im, low, high, cut)
     if rcoef != 1:
@@ -105,7 +132,9 @@ def _preprocess_extend_single(im, extend, low, high, cut, rcoef, bigshape):
     return utils.embed_to(bg, im)
 
 
-def _postprocess_unextend(ims, im2, extend, rcoef=1):
+def _postprocess_unextend(
+    ims: list[NDArray], im2: NDArray, extend: int, rcoef: float = 1
+) -> list[NDArray]:
     if rcoef != 1:
         ims = [resample(img, 1.0 / rcoef) for img in ims]
         im2 = resample(im2, 1.0 / rcoef)
@@ -113,7 +142,13 @@ def _postprocess_unextend(ims, im2, extend, rcoef=1):
     return [utils.unextend_by(img, extend) for img in [*ims, im2]]
 
 
-def process_images(ims, opts, tosa=None, get_unextended=False, reports=None):
+def process_images(
+    ims: list[NDArray],
+    opts: dict[str, Any],
+    tosa: NDArray | None = None,
+    get_unextended: bool = False,
+    reports: reporting.ReportsWrapper | None = None,
+) -> dict[str, Any]:
     """Args:
     tosa (np.ndarray): An array where to save the transformed subject.
     get_unextended (bool): Whether to get the transformed subject
@@ -170,7 +205,7 @@ def process_images(ims, opts, tosa=None, get_unextended=False, reports=None):
     return resdict
 
 
-def process_tile(ii, reports=None) -> None:
+def process_tile(ii: int, reports: reporting.ReportsWrapper | None = None) -> None:
     global _SUCCS, _SHIFTS, _ANGLES, _SCALES, _DIFFS
     tile = _TILES[ii]
     image = _IMAGE
@@ -202,7 +237,12 @@ def process_tile(ii, reports=None) -> None:
         # pyl.show()
 
 
-def _fill_globals(tiles, poss, image, opts) -> None:
+def _fill_globals(
+    tiles: tuple[NDArray, ...],
+    poss: tuple[NDArray, ...],
+    image: NDArray,
+    opts: dict[str, Any],
+) -> None:
     ntiles = len(tiles)
     global _SUCCS, _SHIFTS, _ANGLES, _SCALES, _DIFFS
     global _TILES, _IMAGE, _OPTS, _POSS
@@ -222,7 +262,12 @@ def _fill_globals(tiles, poss, image, opts) -> None:
     _POSS = tuple(tuple(pos) for pos in poss)
 
 
-def settle_tiles(imgs, tiledim, opts, reports=None):
+def settle_tiles(
+    imgs: list[NDArray],
+    tiledim: tuple[float, float],
+    opts: dict[str, Any],
+    reports: reporting.ReportsWrapper | None = None,
+) -> dict[str, Any]:
     global _SHIFTS
     coef = 0.41
     img0 = imgs[0]

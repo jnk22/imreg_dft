@@ -27,17 +27,22 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import annotations
 
 import argparse as ap
 import re
 import sys
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from imreg_dft import cli, imreg, loader, utils
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
-def create_parser():
+
+def create_parser() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("subject")
     parser.add_argument(
@@ -59,7 +64,7 @@ def create_parser():
 
 
 # TODO: Hanldle missing entries + default values
-def _str2tform(tstr):
+def _str2tform(tstr: str) -> dict[str, float | NDArray]:
     """Parses a transformation-descripting string to a transformation dict."""
     rexp = (
         r"scale:\s*(?P<scale>\S*)\s*(\+-\S*)?\s*"
@@ -70,12 +75,13 @@ def _str2tform(tstr):
     match = re.search(rexp, tstr, re.MULTILINE)
     assert match is not None, "No match"
     parsed = match.groupdict()
+    ret: dict[str, float | NDArray]
     ret = {key: float(val) for key, val in parsed.items()}
     ret["tvec"] = np.array((ret["ty"], ret["tx"]))
     return ret
 
 
-def str2tform(tstr, invert=False):
+def str2tform(tstr: str, invert: bool = False) -> dict[str, float | NDArray]:
     try:
         ret = _str2tform(tstr)
     except Exception as e:
@@ -89,7 +95,7 @@ def str2tform(tstr, invert=False):
     return ret
 
 
-def args2dict(args):
+def args2dict(args: ap.Namespace) -> dict[str, Any]:
     """Takes parsed command-line args and makes a dict that contains exact info
     about what needs to be done.
     """

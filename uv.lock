@@ -261,6 +261,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pillow" },
     { name = "scipy" },
+    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -292,6 +293,7 @@ requires-dist = [
     { name = "pillow" },
     { name = "pyfftw", marker = "extra == 'better-performance'" },
     { name = "scipy", specifier = ">=1.7.2" },
+    { name = "typing-extensions" },
 ]
 provides-extras = ["better-performance", "plotting"]
 

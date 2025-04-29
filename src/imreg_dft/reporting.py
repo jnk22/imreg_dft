@@ -27,10 +27,19 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import annotations
+
 import contextlib
-from typing import NoReturn
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator, ItemsView, Sequence
+
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+    from numpy.typing import NDArray
 
 # We intentionally don't import matplotlib on this level - we want this module
 # to be importable even if one doesn't have matplotlib
@@ -38,12 +47,14 @@ import numpy as np
 TEXT_MODE = "plain"
 
 
-def _t(stri):
+def _t(stri: str) -> str:
     return f"\textrm{{{stri}}}" if TEXT_MODE == "tex" else stri
 
 
 @contextlib.contextmanager
-def report_wrapper(orig, index):
+def report_wrapper(
+    orig: ReportsWrapper | None, index: int
+) -> Generator[ReportsWrapper | None]:
     if orig is None:
         yield None
     else:
@@ -59,7 +70,7 @@ class ReportsWrapper:
     prefix keys of items set.
     """
 
-    def __init__(self, toshow="") -> None:
+    def __init__(self, toshow: str = "") -> None:
         self.prefixes = [""]
         #: Keys by prefix
         self._stuff = {"": {}}
@@ -75,10 +86,10 @@ class ReportsWrapper:
             "translation": "2" in toshow,
         }
 
-    def get_contents(self):
+    def get_contents(self) -> ItemsView:
         return self._stuff.items()
 
-    def copy_empty(self):
+    def copy_empty(self) -> ReportsWrapper:
         ret = ReportsWrapper(self._toshow)
         ret.idx = self.idx
         ret.prefixes = self.prefixes
@@ -86,30 +97,30 @@ class ReportsWrapper:
             ret._stuff[prefix] = {}
         return ret
 
-    def set_global(self, key, value) -> None:
+    def set_global(self, key: str, value: Any) -> None:
         self._stuff[""][key] = value
 
-    def get_global(self, key):
+    def get_global(self, key: str) -> Any:
         return self._stuff[""][key]
 
-    def show(self, *args):
+    def show(self, *args: Any) -> Any:
         ret = False
         for arg in args:
             ret |= self._show[arg]
         return ret
 
-    def __setitem__(self, key, value) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         self._stuff[self.idx][key] = value
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         return self._stuff[self.idx][key]
 
-    def push_prefix(self, idx) -> None:
+    def push_prefix(self, idx: str) -> None:
         self._stuff.setdefault(idx, {})
         self.idx = idx
         self.prefixes.append(self.idx)
 
-    def pop_prefix(self, idx) -> None:
+    def pop_prefix(self, idx: str) -> None:
         assert self.prefixes[-1] == idx, (
             f"Real previous prefix ({self.prefixes[-1]}) differs from the specified ({idx})"
         )
@@ -121,29 +132,33 @@ class ReportsWrapper:
 
 
 class Rect_callback:
-    def __call__(self, idx, LLC, dims):
+    def __call__(self, idx: int, LLC: NDArray, dims: NDArray) -> None:
         self._call(idx, LLC, dims)
 
-    def _call(self, idx, LLC, dims) -> NoReturn:
+    def _call(self, idx: int, LLC: NDArray, dims: NDArray) -> None:
         raise NotImplementedError
 
 
 class Rect_mpl(Rect_callback):
     """A class that can draw image tiles nicely."""
 
-    def __init__(self, subplot, shape) -> None:
+    def __init__(self, subplot: Axes, shape: tuple[int, ...]) -> None:
         self.subplot = subplot
         self.ecs = ("w", "k")
         self.shape = shape
 
-    def _get_color(self, coords, dic=None):
+    def _get_color(
+        self, coords: tuple[int, ...], dic: dict[str, Any] | None = None
+    ) -> str:
         lidx = sum(coords)
         ret = self.ecs[lidx % 2]
         if dic is not None:
             dic["ec"] = ret
         return ret
 
-    def _call(self, idx, LLC, dims, special=False) -> None:
+    def _call(
+        self, idx: int, LLC: NDArray, dims: NDArray, special: bool = False
+    ) -> None:
         import matplotlib.pyplot as plt
 
         # Get from the numpy -> MPL coord system
@@ -167,7 +182,7 @@ class Rect_mpl(Rect_callback):
         )
 
 
-def slices2rects(slices, rect_cb) -> None:
+def slices2rects(slices: list[list[slice]], rect_cb: Rect_callback) -> None:
     """Args:
     slices: List of slice objects
     rect_cb (callable): Check :class:`Rect_callback`.
@@ -180,7 +195,7 @@ def slices2rects(slices, rect_cb) -> None:
         rect_cb(ii, llc, dims)
 
 
-def imshow_spectra(fig, spectra):
+def imshow_spectra(fig: Figure, spectra: list[NDArray]) -> Figure:
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
@@ -206,7 +221,9 @@ def imshow_spectra(fig, spectra):
     return fig
 
 
-def imshow_logpolars(fig, spectra, log_base, im_shape):
+def imshow_logpolars(
+    fig: Figure, spectra: list[NDArray], log_base: float, im_shape: tuple[int, ...]
+) -> Figure:
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
@@ -250,7 +267,9 @@ def imshow_logpolars(fig, spectra, log_base, im_shape):
     return fig
 
 
-def imshow_plain(fig, images, what, also_common=False):
+def imshow_plain(
+    fig: Figure, images: list[NDArray], what: Sequence[str], also_common: bool = False
+) -> Figure:
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
@@ -288,7 +307,13 @@ def imshow_plain(fig, images, what, also_common=False):
     return fig
 
 
-def imshow_pcorr_translation(fig, cpss, extent, results, successes):
+def imshow_pcorr_translation(
+    fig: Figure,
+    cpss: list[NDArray],
+    extent: NDArray,
+    results: list[NDArray],
+    successes: list[float],
+) -> Figure:
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
@@ -355,8 +380,15 @@ def imshow_pcorr_translation(fig, cpss, extent, results, successes):
 
 
 def imshow_pcorr(
-    fig, raw, filtered, extent, result, success, log_base=None, terse=False
-):
+    fig: Figure,
+    raw: NDArray,
+    filtered: NDArray,
+    extent: NDArray,
+    result: NDArray,
+    success: bool,
+    log_base: float | None = None,
+    terse: bool = False,
+) -> Figure:
     import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
@@ -437,7 +469,9 @@ def imshow_pcorr(
     return fig
 
 
-def imshow_tiles(fig, im0, slices, shape) -> None:
+def imshow_tiles(
+    fig: Figure, im0: NDArray, slices: list[list[slice]], shape: tuple[int, ...]
+) -> None:
     import matplotlib.pyplot as plt
 
     axes = fig.add_subplot(111)
@@ -446,7 +480,9 @@ def imshow_tiles(fig, im0, slices, shape) -> None:
     slices2rects(slices, callback)
 
 
-def imshow_results(fig, successes, shape, cluster) -> None:
+def imshow_results(
+    fig: Figure, successes: NDArray, shape: tuple[int, ...], cluster: NDArray
+) -> None:
     import matplotlib.pyplot as plt
 
     toshow = successes.reshape(shape)
@@ -474,11 +510,15 @@ def imshow_results(fig, successes, shape, cluster) -> None:
         )
 
 
-def mk_factory(prefix, basedim, dpi=150, ftype="png"):
+def mk_factory(
+    prefix: str, basedim: NDArray, dpi: int = 150, ftype: str = "png"
+) -> Callable:
     import matplotlib.pyplot as plt
 
     @contextlib.contextmanager
-    def _figfun(basename, x, y, use_aspect=True):
+    def _figfun(
+        basename: str, x: float, y: float, use_aspect: bool = True
+    ) -> Generator[Figure]:
         _basedim = basedim
         if use_aspect is False:
             _basedim = basedim[0]
@@ -491,7 +531,7 @@ def mk_factory(prefix, basedim, dpi=150, ftype="png"):
     return _figfun
 
 
-def report_tile(reports, prefix, multiplier=5.5) -> None:
+def report_tile(reports: ReportsWrapper, prefix: str, multiplier: float = 5.5) -> None:
     multiplier = reports.get_global("size")
     dpi = reports.get_global("dpi")
     ftype = reports.get_global("ftype")
@@ -505,7 +545,14 @@ def report_tile(reports, prefix, multiplier=5.5) -> None:
             _report_switch(fig_factory, key, value, reports, contents, terse)
 
 
-def _report_switch(fig_factory, key, value, reports, contents, terse) -> None:
+def _report_switch(
+    fig_factory: Callable,
+    key: str,
+    value: Any,
+    reports: ReportsWrapper,
+    contents: dict[str, Any],
+    terse: bool,
+) -> None:
     if "ims_filt" in key and reports.show("inputs"):
         with fig_factory(key, 2, 2) as fig:
             imshow_plain(fig, value, ("template", "subject"), not terse)

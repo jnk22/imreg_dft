@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # We may import this during setup invocation
 # because of the version we have to query
 # However, i.e. numpy may not be installed at setup install time.

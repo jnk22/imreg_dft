@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pytest
-from numpy import fft, int64
+from numpy import fft
 from numpy.testing import (
     assert_almost_equal,
     assert_array_equal,
@@ -28,16 +28,18 @@ def rng() -> Generator:
 
 
 @pytest.fixture
-def size_setup() -> tuple[tuple[int, int], int64]:
+def size_setup() -> tuple[tuple[int, int], int]:
     """Return default array size for tests."""
     whatshape = (20, 11)
     whatsize = np.prod(whatshape)
-    return whatshape, whatsize
+    return whatshape, whatsize.item()
 
 
 @pytest.mark.parametrize("whs", [(20, 11), (21, 12), (22, 13), (50, 60)])
 def test_undo(
-    whs: tuple[int, int], size_setup: tuple[tuple[int, int], int64], rng: Generator
+    whs: tuple[int, int],
+    size_setup: tuple[tuple[int, int], int],
+    rng: Generator,
 ) -> None:
     whatshape, _ = size_setup
     what = rng.random(whatshape)
@@ -51,7 +53,9 @@ def test_undo(
 
 @pytest.mark.parametrize("dst", [2, 3, 4])
 def test_extend(
-    dst: int, size_setup: tuple[tuple[int, int], int64], rng: Generator
+    dst: int,
+    size_setup: tuple[tuple[int, int], int],
+    rng: Generator,
 ) -> None:
     whatshape, whatsize = size_setup
     what = rng.random(whatshape)
@@ -255,7 +259,7 @@ def test_clusters() -> None:
     assert score == scores[0]
 
 
-def __dft_score(arr: NDArray, whatsize: int64) -> float:
+def __dft_score(arr: NDArray, whatsize: int) -> float:
     dft = fft.fft2(arr) * whatsize
     dft /= dft.size
 
@@ -267,7 +271,7 @@ def __dft_score(arr: NDArray, whatsize: int64) -> float:
     return ret.sum()
 
 
-def __wrap_filter(src: NDArray, vecs: list[tuple[float, float]], *args) -> None:
+def __wrap_filter(src: NDArray, vecs: list[tuple[float, float]], *args: Any) -> None:
     dest = src.copy()
     for vec in vecs:
         __add_freq(dest, vec)

@@ -14,7 +14,7 @@ from imreg_dft import tform
         "scale: 1.8 angle:186 \nshift (x, y): 35, 44.2 +-0.5 success:1",
     ],
 )
-def test_parse(instr):
+def test_parse(instr: str) -> None:
     res = tform._str2tform(instr)
     assert res["scale"] == pytest.approx(1.8)
     assert res["angle"] == pytest.approx(186)

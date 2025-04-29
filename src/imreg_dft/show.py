@@ -27,6 +27,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import annotations
 
 import argparse as ap
 
@@ -46,7 +47,7 @@ TOSHOW = (
 TOSHOW_ABBR = "isl1a2t"
 
 
-def create_parser():
+def create_parser() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     cli.update_parser_imreg(parser)
     parser.add_argument("--prefix", default="reports")
@@ -76,7 +77,7 @@ def create_parser():
     return parser
 
 
-def _show_valid(stri):
+def _show_valid(stri: str) -> str:
     stripped = stri.rstrip(TOSHOW_ABBR)
     if len(stripped) > 0:
         msg = f"Argument contains invalid characters: {stripped}"
