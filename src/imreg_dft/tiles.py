@@ -232,9 +232,8 @@ def settle_tiles(imgs, tiledim, opts, reports=None):
 
     _fill_globals(tiles, poss, imgs[1], opts)
 
-    for ii, _pos in enumerate(poss):
+    for ii, _ in enumerate(poss):
         process_tile(ii, reports)
-        (ii // ncols, ii % ncols)
 
     """
     if ncores == 0:  # no multiprocessing (to see errors)

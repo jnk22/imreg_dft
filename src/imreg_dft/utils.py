@@ -29,6 +29,8 @@
 
 """FFT based image registration. --- utility functions."""
 
+from itertools import product
+
 import numpy as np
 import scipy.ndimage as ndi
 from numpy import fft
@@ -56,9 +58,8 @@ def _get_angles(shape):
     This function returns a mapping of (the two) coordinates
     to the respective angle.
     """
-    ret = np.zeros(shape, dtype=np.float64)
-    ret -= np.linspace(0, np.pi, shape[0], endpoint=False)[:, np.newaxis]
-    return ret
+    zeros = np.zeros(shape, dtype=np.float64)
+    return zeros - np.linspace(0, np.pi, shape[0], endpoint=False)[:, None]
 
 
 def _get_lograd(shape, log_base):
@@ -71,9 +72,8 @@ def _get_lograd(shape, log_base):
             from 0 to log_base ** (shape[1] - 1)
 
     """
-    ret = np.zeros(shape, dtype=np.float64)
-    ret += np.power(log_base, np.arange(shape[1], dtype=float))[np.newaxis, :]
-    return ret
+    zeros = np.zeros(shape, dtype=np.float64)
+    return zeros + np.power(log_base, np.arange(shape[1], dtype=float))[None, :]
 
 
 def _get_constraint_mask(shape, log_base, constraints=None):
@@ -161,7 +161,7 @@ def argmax_translation(array, filter_pcorr, constraints=None, reports=None):
             continue
         pos, sigma = constraints[key]
         alen = ashape[dim]
-        dom = np.linspace(-alen // 2, -alen // 2 + alen, alen, False)
+        dom = np.linspace(-alen // 2, -alen // 2 + alen, alen, endpoint=False)
         if sigma == 0:
             # generate a binary array closest to the position
             idx = np.argmin(np.abs(dom - pos))
@@ -226,9 +226,9 @@ def _get_success(array, coord, radius=2):
 def _argmax2D(array, reports=None):
     """Simple 2D argmax function with simple sharpness indication."""
     amax = np.argmax(array)
-    ret = list(np.unravel_index(amax, array.shape))
+    max_indices = list(np.unravel_index(amax, array.shape))
 
-    return np.array(ret)
+    return np.array(max_indices)
 
 
 def _get_subarr(array, center, rad):
@@ -288,7 +288,6 @@ def _argmax_ext(array, exponent):
     # When using an integer exponent for _argmax_ext, it is good to have the
     # neutral rotation/scale in the center rather near the edges
 
-    ret = None
     if exponent == "inf":
         ret = _argmax2D(array)
     else:
@@ -697,12 +696,7 @@ def getCuts(shp0, shp1, coef=0.5):
         for shap0, shap1, offset in zip(shp0, shp1, offsets, strict=False)
     ]
     assert len(starts) == 2
-    res = []
-    for start0 in starts[0]:
-        for start1 in starts[1]:
-            toapp = (start0, start1)
-            res.append(toapp)
-    return res
+    return list(product(starts[0], starts[1]))
 
 
 def _getCut(big, small, offset):
@@ -767,8 +761,7 @@ def _get_dst1(pt, pts):
     """Given a point in 2D and vector of points, return vector of distances
     according to Manhattan metrics.
     """
-    dsts = np.abs(pts - pt)
-    return np.max(dsts, axis=1)
+    return np.max(np.abs(pts - pt), axis=1)
 
 
 def get_clusters(points, rad=0):
@@ -816,14 +809,12 @@ def get_best_cluster(points, scores, rad=0):
 
 def _ang2complex(angles):
     """Transform angle in degrees to complex phasor."""
-    angles = np.deg2rad(angles)
-    return np.exp(1j * angles)
+    return np.exp(1j * np.deg2rad(angles))
 
 
 def _complex2ang(cplx):
     """Inversion of :func:`_ang2complex`."""
-    ret = np.angle(cplx)
-    return np.rad2deg(ret)
+    return np.rad2deg(np.angle(cplx))
 
 
 def get_values(cluster, shifts, scores, angles, scales):

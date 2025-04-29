@@ -60,7 +60,10 @@ Rough edges (but not rough enough to be worth the trouble):
 """
 
 import sys
-from typing import NoReturn
+from pathlib import Path
+from typing import Final, NoReturn
+
+VALID_FLAT_VALUES: Final = {"R", "G", "B", "V"}
 
 
 def _str2nptype(stri):
@@ -92,8 +95,8 @@ def _str2nptype_original(stri):
 
 
 def _str2flat(stri):
-    assert stri in "R,G,B,V".split(
-        ","
+    assert (
+        stri in VALID_FLAT_VALUES
     ), f"Flat value has to be one of R, G, B, V, is '{stri}' instead"
     return stri
 
@@ -427,7 +430,7 @@ class _HDRLoader(Loader):
         import numpy as np
 
         basename = fname.rstrip(".hdr")
-        with open(f"{basename}.hdr") as fh:
+        with Path(f"{basename}.hdr").open() as fh:
             hdr = fh.readlines()
         img = np.fromfile(f"{basename}.img", np.uint8, -1)
         img.shape = int(hdr[4].split()[-1]), int(hdr[3].split()[-1])

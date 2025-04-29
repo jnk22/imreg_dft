@@ -47,7 +47,7 @@ def report_wrapper(orig, index):
     if orig is None:
         yield None
     else:
-        prefix = "%03d-" % index
+        prefix = f"{index:03d}-"
         orig.push_prefix(prefix)
         yield orig
         orig.pop_prefix(prefix)
@@ -160,7 +160,7 @@ class Rect_mpl(Rect_callback):
         self.subplot.text(
             center[0],
             center[1],
-            "%02d\n(%d, %d)" % (idx, coords[0], coords[1]),
+            f"{idx:02d}\n({coords[0]}, {coords[1]})",
             va="center",
             ha="center",
             color=color,
@@ -174,10 +174,10 @@ def slices2rects(slices, rect_cb) -> None:
 
     """
     for ii, (sly, slx) in enumerate(slices):
-        LLC = np.array((sly.start, slx.start))
-        URC = np.array((sly.stop, slx.stop))
-        dims = URC - LLC
-        rect_cb(ii, LLC, dims)
+        llc = np.array((sly.start, slx.start))
+        urc = np.array((sly.stop, slx.stop))
+        dims = urc - llc
+        rect_cb(ii, llc, dims)
 
 
 def imshow_spectra(fig, spectra):

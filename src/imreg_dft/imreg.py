@@ -287,7 +287,7 @@ def _similarity(
     if reports is not None and reports.show("transformed"):
         reports["after_tform"] = [im2.copy()]
 
-    for _ii in range(numiter):
+    for _ in range(numiter):
         newscale, newangle = _get_ang_scale(
             [im0, im2], bgval, exponent, constraints_dynamic, reports
         )
@@ -317,11 +317,11 @@ def _similarity(
     # don't know what it does, but it alters the scale a little bit
     # scale = (im1.shape[1] - 1) / (int(im1.shape[1] / scale) - 1)
 
-    Dangle, Dscale = _get_precision(shape, scale)
+    d_angle, d_scale = _get_precision(shape, scale)
 
     res["scale"] = scale
-    res["Dscale"] = Dscale
-    res["Dangle"] = Dangle
+    res["Dscale"] = d_scale
+    res["Dangle"] = d_angle
     # 0.25 because we go subpixel now
     res["Dt"] = 0.25
 

@@ -41,7 +41,7 @@ def assure_constraint(possible_constraints) -> None:
 
 
 def _constraints(what):
-    BOUNDS = {
+    bounds = {
         "angle": (-180, 180),
         "scale": (0.5, 2.0),
     }
@@ -58,8 +58,8 @@ def _constraints(what):
         except Exception:
             msg = f"The {what} value must be a float number, got '{components[0]}'."
             raise ap.ArgumentTypeError(msg)
-        if what in BOUNDS:
-            lo, hi = BOUNDS[what]
+        if what in bounds:
+            lo, hi = bounds[what]
             if not lo <= mean <= hi:
                 msg = (
                     f"The {what} value must be a number between {lo:g} and {hi:g}, "
@@ -336,7 +336,9 @@ def _get_resdict(imgs, opts, tosa=None):
         if tosa is not None:
             tosa[:] = ird.transform_img_dict(tosa, resdict)
     else:
-        resdict = tiles.process_images(imgs, opts, tosa, True, reports=reports)
+        resdict = tiles.process_images(
+            imgs, opts, tosa, get_unextended=True, reports=reports
+        )
 
     if reports is not None:
         reports.set_global("aspect", imgs[0].shape[1] / float(imgs[0].shape[0]))
