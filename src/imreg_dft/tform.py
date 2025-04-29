@@ -103,7 +103,7 @@ def args2dict(args: ap.Namespace) -> dict[str, Any]:
     _loader = loader.LOADERS.get_loader(args.subject)
     # loader needs to be loaded first
     _loader.load2reg(args.subject)
-    ret = {"subject": _loader.get2save()}
+    ret: dict[str, Any] = {"subject": _loader.get2save()}
     if args.template is not None:
         img = _loader.load2reg(args.template)
         template_shape = img.shape

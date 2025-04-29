@@ -159,7 +159,7 @@ class Rect_mpl(Rect_callback):
     def _call(
         self, idx: int, LLC: NDArray, dims: NDArray, special: bool = False
     ) -> None:
-        import matplotlib.pyplot as plt
+        from matplotlib.patches import Rectangle
 
         # Get from the numpy -> MPL coord system
         LLC = LLC[::-1]
@@ -169,7 +169,7 @@ class Rect_mpl(Rect_callback):
         color = self._get_color(coords, kwargs)
         if special:
             kwargs["fc"] = "w"
-        rect = plt.Rectangle(LLC, dims[1], dims[0], **kwargs)
+        rect = Rectangle(LLC, dims[1], dims[0], **kwargs)
         self.subplot.add_artist(rect)
         center = (URC + LLC) / 2.0
         self.subplot.text(
@@ -196,7 +196,6 @@ def slices2rects(slices: list[list[slice]], rect_cb: Rect_callback) -> None:
 
 
 def imshow_spectra(fig: Figure, spectra: list[NDArray]) -> Figure:
-    import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
     dfts_filt_extent = (-1, 1, -1, 1)
@@ -224,8 +223,8 @@ def imshow_spectra(fig: Figure, spectra: list[NDArray]) -> Figure:
 def imshow_logpolars(
     fig: Figure, spectra: list[NDArray], log_base: float, im_shape: tuple[int, ...]
 ) -> Figure:
-    import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+    from matplotlib.ticker import ScalarFormatter
 
     low = 1.0
     high = log_base ** spectra[0].shape[1]
@@ -244,7 +243,7 @@ def imshow_logpolars(
         vmin = np.percentile(im, 1)
         vmax = np.percentile(im, 99)
         grid[ii].set_xscale("log", basex=log_base)
-        grid[ii].get_xaxis().set_major_formatter(plt.ScalarFormatter())
+        grid[ii].get_xaxis().set_major_formatter(ScalarFormatter())
         im = grid[ii].imshow(
             im,
             cmap="viridis",
@@ -270,7 +269,6 @@ def imshow_logpolars(
 def imshow_plain(
     fig: Figure, images: list[NDArray], what: Sequence[str], also_common: bool = False
 ) -> Figure:
-    import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
     ncols = len(images)
@@ -314,7 +312,6 @@ def imshow_pcorr_translation(
     results: list[NDArray],
     successes: list[float],
 ) -> Figure:
-    import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
 
     ncols = 2
@@ -389,8 +386,8 @@ def imshow_pcorr(
     log_base: float | None = None,
     terse: bool = False,
 ) -> Figure:
-    import matplotlib.pyplot as plt
     import mpl_toolkits.axes_grid1 as axg
+    from matplotlib.ticker import ScalarFormatter
 
     ncols = 1 if terse else 2
     grid = axg.ImageGrid(
@@ -452,7 +449,7 @@ def imshow_pcorr(
     if log_base is not None:
         for dim in range(ncols):
             grid[dim].set_xscale("log", basex=log_base)
-            grid[dim].get_xaxis().set_major_formatter(plt.ScalarFormatter())
+            grid[dim].get_xaxis().set_major_formatter(ScalarFormatter())
             xlabels = grid[dim].get_xticklabels(False, "both")
             for x in xlabels:
                 x.set_ha("right")
@@ -472,8 +469,6 @@ def imshow_pcorr(
 def imshow_tiles(
     fig: Figure, im0: NDArray, slices: list[list[slice]], shape: tuple[int, ...]
 ) -> None:
-    import matplotlib.pyplot as plt
-
     axes = fig.add_subplot(111)
     axes.imshow(im0, cmap="viridis")
     callback = Rect_mpl(axes, shape)
@@ -483,8 +478,6 @@ def imshow_tiles(
 def imshow_results(
     fig: Figure, successes: NDArray, shape: tuple[int, ...], cluster: NDArray
 ) -> None:
-    import matplotlib.pyplot as plt
-
     toshow = successes.reshape(shape)
 
     axes = fig.add_subplot(111)
@@ -621,8 +614,6 @@ def _report_switch(
             for idx in range(2):
                 basename = f"t_{t_flip[idx]}"
                 ncols = 2
-                if terse:
-                    ncols = 1
                 with fig_factory(basename, ncols, 1) as fig:
                     imshow_pcorr(
                         fig,

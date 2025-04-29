@@ -237,13 +237,12 @@ def _get_success(
         The meaning of the number is loose, but the higher the better.
 
     """
-    coord = np.round(coord).astype(int)
-    coord = tuple(coord)
+    coord_x = tuple(np.round(coord).astype(int))
 
-    subarr = _get_subarr(array, coord, 2)
+    subarr = _get_subarr(array, coord_x, 2)
 
     theval = subarr.sum()
-    theval2 = array[coord]
+    theval2 = array[coord_x]
     # bigval = np.percentile(array, 97)
     # success = theval / bigval
     # TODO: Think this out

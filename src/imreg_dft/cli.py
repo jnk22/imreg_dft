@@ -1,4 +1,5 @@
 # cli.py
+#
 
 # Copyright (c) 2014-?, Matěj Týč
 # All rights reserved.
@@ -85,15 +86,13 @@ def _constraints(
             return mean, None
 
         try:
-            std = float(std)
+            return (mean, float(std))
         except Exception:
             msg = (
                 f"The {what} standard deviation spec must be either"
                 f"either a float number or nothing, got '{std}'."
             )
             raise ap.ArgumentTypeError(msg)
-
-        return (mean, std)
 
     return constraint
 
@@ -105,11 +104,10 @@ def _float_tuple(string: str) -> list[float]:
         msg = f"'{string}' are not two values delimited by comma"
         raise ap.ArgumentTypeError(msg)
     try:
-        vals = [float(val) for val in vals]
+        return [float(val) for val in vals]
     except ValueError as e:
         msg = f"{vals} are not two float values"
         raise ap.ArgumentTypeError(msg) from e
-    return vals
 
 
 def _exponent(string: str) -> str | float:
