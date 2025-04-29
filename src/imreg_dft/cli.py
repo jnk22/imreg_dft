@@ -29,24 +29,34 @@
 
 """FFT based image registration. --- CLI frontend."""
 
+from __future__ import annotations
+
 import argparse as ap
 import sys
+from typing import TYPE_CHECKING, Any, Literal
 
 import imreg_dft as ird
 from imreg_dft import loader, tiles, utils
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def assure_constraint(possible_constraints) -> None:
+    from numpy.typing import NDArray
+
+
+def assure_constraint(possible_constraints: dict[str, Any]) -> None:
     pass
 
 
-def _constraints(what):
+def _constraints(
+    what: Literal["angle", "scale", "shift"],
+) -> Callable:
     bounds = {
         "angle": (-180, 180),
         "scale": (0.5, 2.0),
     }
 
-    def constraint(string):
+    def constraint(string: str) -> tuple[float, float | None]:
         components = string.split(",")
         if not (0 < len(components) <= 2):
             raise ap.ArgumentTypeError(
@@ -66,26 +76,29 @@ def _constraints(what):
                     f"got {mean:g}."
                 )
                 raise ap.ArgumentTypeError(msg)
-        std = 0
-        if len(components) == 2:
-            std = components[1]
-            if len(std) == 0:
-                std = None
-            else:
-                try:
-                    std = float(std)
-                except Exception:
-                    msg = (
-                        f"The {what} standard deviation spec must be either"
-                        f"either a float number or nothing, got '{std}'."
-                    )
-                    raise ap.ArgumentTypeError(msg)
+
+        if len(components) != 2:
+            return mean, 0
+
+        std = components[1]
+        if len(std) == 0:
+            return mean, None
+
+        try:
+            std = float(std)
+        except Exception:
+            msg = (
+                f"The {what} standard deviation spec must be either"
+                f"either a float number or nothing, got '{std}'."
+            )
+            raise ap.ArgumentTypeError(msg)
+
         return (mean, std)
 
     return constraint
 
 
-def _float_tuple(string):
+def _float_tuple(string: str) -> list[float]:
     """Support function for parsing string of two floats delimited by a comma."""
     vals = string.split(",")
     if len(vals) != 2:
@@ -99,7 +112,7 @@ def _float_tuple(string):
     return vals
 
 
-def _exponent(string):
+def _exponent(string: str) -> str | float:
     """Converts the passed string to a float or "inf"."""
     if string == "inf":
         return string
@@ -111,7 +124,7 @@ def _exponent(string):
     return ret
 
 
-def outmsg(msg):
+def outmsg(msg: str) -> str:
     """Support function for checking of validity of the output format string.
     A test interpolation is performed and exceptions handled.
     """
@@ -138,7 +151,7 @@ def outmsg(msg):
     return msg
 
 
-def create_base_parser(parser) -> None:
+def create_base_parser(parser: ap.ArgumentParser) -> None:
     parser.add_argument(
         "--extend",
         type=int,
@@ -156,7 +169,7 @@ def create_base_parser(parser) -> None:
     )
 
 
-def update_parser_imreg(parser) -> None:
+def update_parser_imreg(parser: ap.ArgumentParser) -> None:
     parser.add_argument("template")
     parser.add_argument("subject")
     parser.add_argument(
@@ -264,7 +277,7 @@ def update_parser_imreg(parser) -> None:
     loader.update_parser(parser)
 
 
-def create_parser():
+def create_parser() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     update_parser_imreg(parser)
     parser.add_argument(
@@ -276,7 +289,7 @@ def create_parser():
     return parser
 
 
-def args2dict(args):
+def args2dict(args: ap.Namespace) -> dict[str, Any]:
     loaders = loader.settle_loaders(args, (args.template, args.subject))
 
     # We need tuples in the parser and lists further in the code.
@@ -318,10 +331,12 @@ def main() -> None:
     run(args.template, args.subject, opts)
 
 
-def _get_resdict(imgs, opts, tosa=None):
+def _get_resdict(
+    imgs: list[NDArray], opts: dict[str, Any], tosa: NDArray | None = None
+) -> dict[str, Any]:
     import numpy as np
 
-    reports = opts.get("reports", None)
+    reports = opts.get("reports")
     tiledim = None
     if opts["tile"]:
         shapes = np.array([np.array(img.shape) for img in imgs])
@@ -346,7 +361,7 @@ def _get_resdict(imgs, opts, tosa=None):
     return resdict
 
 
-def run(template, subject, opts) -> None:
+def run(template: NDArray, subject: NDArray, opts: dict[str, Any]) -> None:
     # lazy import so no imports before run() is really called
     from imreg_dft import imreg
 

@@ -33,6 +33,7 @@ dependencies = [
   "scipy>=1.7.2",
   "pillow",
   "imageio",
+  "typing-extensions",
 ]
 
 [project.optional-dependencies]
@@ -111,7 +112,15 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["COM812", "D203", "D213", "ERA001", "ISC001", "T201"]
+ignore = [
+  "ANN401", # Allow 'Any' type until all arguments are properly typed
+  "COM812",
+  "D203",
+  "D213",
+  "ERA001",
+  "ISC001",
+  "T201",
+]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401"]

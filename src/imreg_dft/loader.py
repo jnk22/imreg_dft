@@ -59,14 +59,22 @@ Rough edges (but not rough enough to be worth the trouble):
   a template and image file strings (they don't have to be real filenames tho).
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
-from typing import Final, NoReturn
+from typing import TYPE_CHECKING, Any, ClassVar, Final
+
+if TYPE_CHECKING:
+    from argparse import ArgumentParser
+    from collections.abc import Callable, KeysView, Sequence
+
+    from numpy.typing import NDArray
 
 VALID_FLAT_VALUES: Final = {"R", "G", "B", "V"}
 
 
-def _str2nptype(stri):
+def _str2nptype(stri: str) -> str | None:
     # NumPy types have been removed (e.g., np.float).
     # To be safe, we still try to use the original method to get
     # NumPy types (e.g., float --> np.float, int --> np.int, ...),
@@ -77,7 +85,7 @@ def _str2nptype(stri):
         return stri
 
 
-def _str2nptype_original(stri):
+def _str2nptype_original(stri: str) -> type:
     import numpy as np
 
     msg = f"The string '{stri}' is supposed to correspond to a numpy type"
@@ -94,14 +102,14 @@ def _str2nptype_original(stri):
     return typ
 
 
-def _str2flat(stri):
+def _str2flat(stri: str) -> str:
     assert stri in VALID_FLAT_VALUES, (
         f"Flat value has to be one of R, G, B, V, is '{stri}' instead"
     )
     return stri
 
 
-def flatten(image, char):
+def flatten(image: NDArray, char: str) -> NDArray:
     """Given a layered image (typically (y, x, RGB)), return a plain 2D image
     (y, x) according to a spec.
 
@@ -129,9 +137,9 @@ def flatten(image, char):
 
 
 class LoaderSet:
-    _LOADERS = []
+    _LOADERS: ClassVar = []
     # singleton-like functionality
-    _we = None
+    _we: LoaderSet | None = None
 
     def __init__(self) -> None:
         if LoaderSet._we is not None:
@@ -143,7 +151,7 @@ class LoaderSet:
         self.loaders = sorted(loaders, key=lambda x: x.priority)
         LoaderSet._we = self
 
-    def _choose_loader(self, fname):
+    def _choose_loader(self, fname: str) -> Loader | None:
         """Use autodetection to select a loader to use.
 
         Returns:
@@ -154,7 +162,7 @@ class LoaderSet:
             (loader for loader in self.loaders if loader.guessCanLoad(fname)), None
         )
 
-    def get_loader(self, fname, lname=None):
+    def get_loader(self, fname: str, lname: str | None = None) -> Loader:
         """Try to select a loader. Either we know what we want, or an
         autodetection will take place.
         Exceptions are raised when things go wrong.
@@ -169,24 +177,24 @@ class LoaderSet:
         # Make sure that we don't return the same instance multiple times
         return ret.spawn()
 
-    def _get_loader(self, lname):
+    def _get_loader(self, lname: str) -> Loader:
         if lname not in self.loader_dict:
             msg = f"No loader named '{lname}'."
             msg += f" Choose one of {self.loader_dict.keys()}."
             raise KeyError(msg)
-        return self.loader_dict(lname)
+        return self.loader_dict[lname]
 
-    def get_loader_names(self):
+    def get_loader_names(self) -> tuple[KeysView]:
         """What are the names of loaders that we know."""
         ret = self.loader_dict.keys()
         return tuple(ret)
 
     @classmethod
-    def add_loader(cls, loader_cls) -> None:
+    def add_loader(cls, loader_cls: type[Loader]) -> None:
         """Use this method (at early run-time) to register a loader."""
         cls._LOADERS.append(loader_cls)
 
-    def print_loader_help(self, lname=None) -> None:
+    def print_loader_help(self, lname: str | None = None) -> None:
         """Print info about loaders.
         Either print short summary about all loaders, or focus just on one.
         """
@@ -204,7 +212,7 @@ class LoaderSet:
                 msg += f"\t'{opt}' (default '{loader.defaults[opt]}'): {loader.opts[opt]}\n"
         print(msg)
 
-    def distribute_opts(self, opts) -> None:
+    def distribute_opts(self, opts: dict[Any, Any] | None) -> None:
         """Propagate loader options to all loaders."""
         if opts is None:
             # don't return, do something so possible problems surface.
@@ -213,12 +221,12 @@ class LoaderSet:
             loader.setOpts(opts)
 
 
-def loader_of(lname, priority):
+def loader_of(lname: str, priority: int) -> Callable:
     """A decorator interconnecting an abstract loader with the rest of imreg_dft
     It sets the "nickname" of the loader and its priority during autodetection.
     """
 
-    def wrapped(cls):
+    def wrapped(cls: Any) -> Any:
         cls.name = lname
         cls.priority = priority
         LoaderSet.add_loader(cls)
@@ -235,19 +243,19 @@ class Loader:
     name = None
     priority = 10
     desc = ""
-    opts = {}
-    defaults = {}
-    str2val = {}
+    opts: ClassVar = {}
+    defaults: ClassVar = {}
+    str2val: ClassVar = {}
 
     def __init__(self) -> None:
-        self.loaded = None
-        self._opts = {}
+        self.loaded: NDArray | None = None
+        self._opts: dict[str, Any] = {}
         # First run, the second will hopefully follow later
         self.setOpts({})
         # We may record some useful stuff for saving during loading
-        self.saveopts = {}
+        self.saveopts: dict[str, Any] = {}
 
-    def spawn(self):
+    def spawn(self) -> Loader:
         """Makes a new instance of the object's class
         BUT it conserves vital data.
         """
@@ -257,19 +265,19 @@ class Loader:
         ret._opts = self._opts
         return ret
 
-    def setOpts(self, options) -> None:
+    def setOpts(self, options: dict[Any, Any]) -> None:
         for opt in self.opts:
             stri = options.get(opt, self.defaults[opt])
             val = self.str2val.get(opt, lambda x: x)(stri)
             self._opts[opt] = val
 
-    def guessCanLoad(self, fname) -> bool:
+    def guessCanLoad(self, fname: str) -> bool:
         """Guess whether we can load a filename just according to the name
         (extension).
         """
         return False
 
-    def load2reg(self, fname):
+    def load2reg(self, fname: str) -> NDArray:
         """Given a filename, it loads it and returns in a form suitable for
         registration (i.e. float, flattened, ...).
         """
@@ -281,13 +289,13 @@ class Loader:
 
         return ret
 
-    def get2save(self):
+    def get2save(self) -> NDArray:
         assert self.loaded is not None, (
             "Saving without loading beforehand, which is not supported. "
         )
         return self.loaded
 
-    def _load2reg(self, fname) -> NoReturn:
+    def _load2reg(self, fname: str) -> NDArray:
         """To be implemented by derived class.
         Load data from fname in a way that they can be used in the
         registration process (so it is a 2D array).
@@ -296,7 +304,7 @@ class Loader:
         msg = "Use the derived class"
         raise NotImplementedError(msg)
 
-    def _save(self, fname, tformed) -> NoReturn:
+    def _save(self, fname: str, tformed: NDArray) -> None:
         """To be implemented by derived class.
         Save data to fname, possibly taking into account previous loads
         and/or options passed upon the class creation.
@@ -304,7 +312,7 @@ class Loader:
         msg = "Use the derived class"
         raise NotImplementedError(msg)
 
-    def save(self, fname, what, loader) -> None:
+    def save(self, fname: str, what: NDArray, loader: Loader) -> None:
         """Given the registration result, save the transformed input."""
         sopts = loader.saveopts
         self.saveopts.update(sopts)
@@ -314,7 +322,7 @@ class Loader:
 @loader_of("mat", 10)
 class _MatLoader(Loader):
     desc = "Loader of .mat (MATLAB v5) binary files"
-    opts = {
+    opts: ClassVar = {
         "in": "The structure to load (empty => autodetect)",
         "out": "The structure to save the result to (empty => the same as the 'in'",
         "type": "Name of the numpy data type for the output (such as int, uint8 etc.)",
@@ -322,15 +330,15 @@ class _MatLoader(Loader):
         "registration. Values can be R, G, B or V (V for value - "
         "a number proportional to average of R, G and B)",
     }
-    defaults = {"in": "", "out": "", "type": "float", "flat": "V"}
-    str2val = {"type": _str2nptype, "flat": _str2flat}
+    defaults: ClassVar = {"in": "", "out": "", "type": "float", "flat": "V"}
+    str2val: ClassVar = {"type": _str2nptype, "flat": _str2flat}
 
     def __init__(self) -> None:
         super().__init__()
         # By default, we have not loaded anything
         self.saveopts["loaded_all"] = {}
 
-    def _load2reg(self, fname):
+    def _load2reg(self, fname: str) -> NDArray:
         from scipy import io
 
         mat = io.loadmat(fname)
@@ -359,7 +367,7 @@ class _MatLoader(Loader):
         # flattening is a no-op on 2D images
         return flatten(ret, self._opts["flat"])
 
-    def _save(self, fname, tformed) -> None:
+    def _save(self, fname: str, tformed: NDArray) -> None:
         from scipy import io
 
         if self._opts["out"] == "":
@@ -373,21 +381,21 @@ class _MatLoader(Loader):
         out[key] = tformed.astype(self._opts["type"])
         io.savemat(fname, out)
 
-    def guessCanLoad(self, fname):
+    def guessCanLoad(self, fname: str) -> bool:
         return fname.endswith(".mat")
 
 
 @loader_of("pil", 50)
 class _PILLoader(Loader):
     desc = "Loader of image formats that Pillow (or PIL) can support"
-    opts = {"flat": _MatLoader.opts["flat"]}
-    defaults = {"flat": _MatLoader.defaults["flat"]}
-    str2val = {"flat": _MatLoader.str2val["flat"]}
+    opts: ClassVar = {"flat": _MatLoader.opts["flat"]}
+    defaults: ClassVar = {"flat": _MatLoader.defaults["flat"]}
+    str2val: ClassVar = {"flat": _MatLoader.str2val["flat"]}
 
     def __init__(self) -> None:
         super().__init__()
 
-    def _load2reg(self, fname):
+    def _load2reg(self, fname: str) -> NDArray:
         import imageio.v3 as iio
 
         # We use pilmode="RGBA" as the default behavior would only load
@@ -399,12 +407,12 @@ class _PILLoader(Loader):
         # flattening is a no-op on 2D images
         return flatten(ret, self._opts["flat"])
 
-    def _save(self, fname, tformed) -> None:
+    def _save(self, fname: str, tformed: NDArray) -> None:
         import imageio.v3 as iio
 
         iio.imwrite(fname, tformed)
 
-    def guessCanLoad(self, fname) -> bool:
+    def guessCanLoad(self, fname: str) -> bool:
         """We think that we can do everything."""
         return True
 
@@ -421,10 +429,10 @@ class _HDRLoader(Loader):
     def __init__(self) -> None:
         super().__init__()
 
-    def guessCanLoad(self, fname):
+    def guessCanLoad(self, fname: str) -> bool:
         return fname.endswith(".hdr")
 
-    def _load2reg(self, fname):
+    def _load2reg(self, fname: str) -> NDArray:
         """Return image data from img&hdr uint8 files."""
         import numpy as np
 
@@ -438,7 +446,7 @@ class _HDRLoader(Loader):
             img /= 255.0
         return img
 
-    def _save(self, fname, tformed) -> None:
+    def _save(self, fname: str, tformed: NDArray) -> None:
         import numpy as np
 
         # Shouldn't happen, just to make sure
@@ -449,7 +457,7 @@ class _HDRLoader(Loader):
         uint.tofile(fname)
 
 
-def _parse_opts(stri):
+def _parse_opts(stri: str) -> dict[str, Any]:
     from argparse import ArgumentTypeError
 
     components = stri.split(",")
@@ -468,7 +476,7 @@ def _parse_opts(stri):
     return ret
 
 
-def update_parser(parser) -> None:
+def update_parser(parser: ArgumentParser) -> None:
     parser.add_argument(
         "--loader",
         choices=LOADERS.get_loader_names(),
@@ -492,7 +500,7 @@ def update_parser(parser) -> None:
     )
 
 
-def settle_loaders(args, fnames=None):
+def settle_loaders(args: Any, fnames: Sequence[str] | None = None) -> list[Loader]:
     """The function to be called as soon as args are parsed.
     It:
 
@@ -520,4 +528,4 @@ def settle_loaders(args, fnames=None):
     return loaders
 
 
-LOADERS = LoaderSet()
+LOADERS: Final = LoaderSet()
