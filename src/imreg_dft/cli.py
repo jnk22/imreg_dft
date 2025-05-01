@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import argparse as ap
 import sys
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal
 
 import imreg_dft as ird
 from imreg_dft import loader, tiles, utils
@@ -44,6 +44,11 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
+__CONSTRAINT_BOUNDS: Final[dict[Literal["angle", "scale"], tuple[float, float]]] = {
+    "angle": (-180, 180),
+    "scale": (0.5, 2.0),
+}
+
 
 def assure_constraint(possible_constraints: dict[str, Any]) -> None:
     pass
@@ -52,11 +57,6 @@ def assure_constraint(possible_constraints: dict[str, Any]) -> None:
 def _constraints(
     what: Literal["angle", "scale", "shift"],
 ) -> Callable:
-    bounds = {
-        "angle": (-180, 180),
-        "scale": (0.5, 2.0),
-    }
-
     def constraint(string: str) -> tuple[float, float | None]:
         components = string.split(",")
         if not (0 < len(components) <= 2):
@@ -69,8 +69,8 @@ def _constraints(
         except Exception:
             msg = f"The {what} value must be a float number, got '{components[0]}'."
             raise ap.ArgumentTypeError(msg)
-        if what in bounds:
-            lo, hi = bounds[what]
+        if what in __CONSTRAINT_BOUNDS:
+            lo, hi = __CONSTRAINT_BOUNDS[what]
             if not lo <= mean <= hi:
                 msg = (
                     f"The {what} value must be a number between {lo:g} and {hi:g}, "
