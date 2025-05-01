@@ -122,7 +122,7 @@ def _get_constraint_mask(
         # TODO: ^^^ Why???
         angles += np.deg2rad(angle)
         # TODO: Check out the wrapping. It may be tricky since pi+1 != 1
-        wrap_angle(angles, np.pi)
+        angles = wrap_angle(angles, np.pi)
         angles = np.rad2deg(angles)
         if sigma == 0:
             aangles = np.abs(angles)
