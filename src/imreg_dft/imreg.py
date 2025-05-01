@@ -428,7 +428,7 @@ def similarity(
     return res
 
 
-def _get_odds(angle: float, target: int, stdev: float | None) -> float:
+def _get_odds(angle: float, target: float, stdev: float | None) -> float:
     """Determine whether we are more likely to choose the angle, or angle + 180°.
 
     Args:
@@ -444,23 +444,21 @@ def _get_odds(angle: float, target: int, stdev: float | None) -> float:
             as inifinity.
 
     """
-    ret = 1
-    if stdev is not None:
-        diffs = [
-            abs(utils.wrap_angle(ang, 360))
-            for ang in (target - angle, target - angle + 180)
-        ]
-        odds0, odds1 = 0, 0
-        if stdev > 0:
-            odds0, odds1 = [np.exp(-(diff**2) / stdev**2) for diff in diffs]
-        if odds0 == 0 and odds1 > 0:
-            # -1 is treated as infinity in _translation
-            ret = -1
-        elif stdev == 0 or (odds0 == 0 and odds1 == 0):
-            ret = 0 if diffs[0] < diffs[1] else -1
-        else:
-            ret = odds1 / odds0
-    return ret
+    if stdev is None:
+        return 1
+
+    angles = np.array((ta := target - angle, ta + 180.0))
+    diffs = np.abs(utils.wrap_angle(angles, 360))
+
+    if stdev <= 0:
+        return -1 if diffs[0] >= diffs[1] else 0
+
+    odds = np.exp(-(diffs**2) / stdev**2)
+
+    if odds[0] == 0:
+        return -1 if (diffs[0] >= diffs[1] or odds[1] > 0) else 0
+
+    return odds[1] / odds[0]
 
 
 def _translation(
