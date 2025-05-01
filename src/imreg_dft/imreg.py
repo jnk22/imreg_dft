@@ -425,9 +425,8 @@ def similarity(
     imask[imask > 0.8] = 1.0
 
     # Framing here = just blending the im2 with its BG according to the mask
-    im3 = utils.frame_img(im2, imask, 10)
+    res["timg"] = utils.frame_img(im2, imask, 10)
 
-    res["timg"] = im3
     return res
 
 
