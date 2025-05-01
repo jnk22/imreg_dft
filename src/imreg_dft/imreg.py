@@ -685,7 +685,7 @@ def _logpolar(
 
     """
     if bgval is None:
-        bgval = np.percentile(image, 1)
+        bgval = np.percentile(image, 1).item()
     imshape = np.array(image.shape)
     center = imshape[0] / 2.0, imshape[1] / 2.0
     # 0 .. pi = only half of the spectrum is used
