@@ -469,12 +469,9 @@ def _translation(
     reports: ReportsWrapper | None = None,
 ) -> tuple[NDArray, float]:
     """The plain wrapper for translation phase correlation, no big deal."""
-    # Apodization and pcorr don't play along
-    # im0, im1 = [utils._apodize(im, ratio=1) for im in (im0, im1)]
-    ret, succ = _phase_correlation(
+    return _phase_correlation(
         im0, im1, utils.argmax_translation, filter_pcorr, constraints, reports
     )
-    return ret, succ
 
 
 def _phase_correlation(
