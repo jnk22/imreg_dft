@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-better_performance = ["pyfftw"]
+better_performance = ["pyfftw>=0.13.0"]
 plotting = ["matplotlib"]
 
 [project.urls]
@@ -56,10 +56,13 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 managed = true
-default-groups = ["dev", "test"]
+default-groups = ["dev", "test", "lint"]
 
 [dependency-groups]
-dev = []
+dev = [
+  "pyfftw>=0.13.0",
+  "matplotlib",
+]
 test = [
   "pytest==8.3.5",
   "pytest-cov==6.1.1",
