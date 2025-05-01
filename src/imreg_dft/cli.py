@@ -82,7 +82,7 @@ def _constraints(
             return mean, 0
 
         std = components[1]
-        if len(std) == 0:
+        if not std:
             return mean, None
 
         try:
