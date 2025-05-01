@@ -60,22 +60,17 @@ def _constraints(
     def constraint(string: str) -> tuple[float, float | None]:
         components = string.split(",")
         if not (0 < len(components) <= 2):
-            raise ap.ArgumentTypeError(
-                "We accept at most %d (but at least 1) comma-delimited numbers,"
-                " you have passed us %d" % (len(components), 2)
-            )
+            msg = f"We accept at most {len(components)} (but at least 1) comma-delimited numbers, you have passed us 2"
+            raise ap.ArgumentTypeError(msg)
         try:
             mean = float(components[0])
-        except Exception:
+        except Exception as e:
             msg = f"The {what} value must be a float number, got '{components[0]}'."
-            raise ap.ArgumentTypeError(msg)
+            raise ap.ArgumentTypeError(msg) from e
         if what in __CONSTRAINT_BOUNDS:
             lo, hi = __CONSTRAINT_BOUNDS[what]
             if not lo <= mean <= hi:
-                msg = (
-                    f"The {what} value must be a number between {lo:g} and {hi:g}, "
-                    f"got {mean:g}."
-                )
+                msg = f"The {what} value must be a number between {lo:g} and {hi:g}, got {mean:g}."
                 raise ap.ArgumentTypeError(msg)
 
         if len(components) != 2:
@@ -87,12 +82,9 @@ def _constraints(
 
         try:
             return (mean, float(std))
-        except Exception:
-            msg = (
-                f"The {what} standard deviation spec must be either"
-                f"either a float number or nothing, got '{std}'."
-            )
-            raise ap.ArgumentTypeError(msg)
+        except Exception as e:
+            msg = f"The {what} standard deviation spec must be either a float number or nothing, got '{std}'."
+            raise ap.ArgumentTypeError(msg) from e
 
     return constraint
 
@@ -116,9 +108,9 @@ def _exponent(string: str) -> str | float:
         return string
     try:
         ret = float(string)
-    except:
+    except Exception as e:
         msg = f"'{string}' should be either 'inf' or a float value"
-        raise ap.ArgumentTypeError(msg)
+        raise ap.ArgumentTypeError(msg) from e
     return ret
 
 
