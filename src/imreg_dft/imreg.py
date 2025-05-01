@@ -55,19 +55,22 @@ if TYPE_CHECKING:
     from imreg_dft.reporting import ReportsWrapper
 
 
-def _logpolar_filter(shape: tuple[int, int]) -> NDArray:
+def _logpolar_filter(shape: tuple[int, int]):
     """Make a radial cosine filter for the logpolar transform.
     This filter suppresses low frequencies and completely removes
     the zero freq.
     """
-    yy = np.linspace(-np.pi / 2.0, np.pi / 2.0, shape[0])[:, np.newaxis]
-    xx = np.linspace(-np.pi / 2.0, np.pi / 2.0, shape[1])[np.newaxis, :]
+    val = np.pi / 2.0
+    linspace_yx = (np.linspace(-val, val, i) for i in reversed(shape[:2]))
+    grid = np.array(np.meshgrid(*linspace_yx))
+
     # Supressing low spatial frequencies is a must when using log-polar
     # transform. The scale stuff is poorly reflected with low freqs.
-    rads = np.sqrt(yy**2 + xx**2)
-    filt = 1.0 - np.cos(rads) ** 2
+    rads = np.sqrt((grid**2).sum(axis=0))
+    filt = np.sin(rads) ** 2
+
     # vvv This doesn't really matter, very high freqs are not too usable anyway
-    filt[np.abs(rads) > np.pi / 2] = 1
+    filt[rads > val] = 1
     return filt
 
 
