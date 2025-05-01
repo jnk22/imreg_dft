@@ -80,7 +80,7 @@ def create_parser() -> ap.ArgumentParser:
 def _show_valid(stri: str) -> str:
     if stripped := stri.rstrip(TOSHOW_ABBR):
         msg = f"Argument contains invalid characters: {stripped}"
-        raise ap.ArgumentError(msg)
+        raise ap.ArgumentError(None, msg)
     return stri
 
 
